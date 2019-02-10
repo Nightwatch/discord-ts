@@ -19,14 +19,14 @@
     "node": ">=6.0.0"
   },
   "scripts": {
-    "lint": "tslint  --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
+    "lint": "tslint  --project . --format stylish --fix",
     "prebuild": "rimraf dist",
     "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
     "start": "rollup -c rollup.config.ts -w",
     "precommit": "lint-staged"
   },
   "lint-staged": {
-    "{src,test}/**/*.ts": [
+    "{src}/**/*.ts": [
       "prettier --write",
       "git add"
     ]
@@ -70,6 +70,7 @@
     "typescript": "^3.0.3"
   },
   "dependencies": {
+    "@babel/polyfill": "^7.2.5",
     "discord.js": "discordjs/discord.js"
   }
 }
