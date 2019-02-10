@@ -68,7 +68,19 @@ export class CommandoClient extends Client {
     const commandName = split[0]
     const args = split.slice(1)
 
-    const command = Command.find(this, commandName)
+    let command = Command.find(this, commandName)
+
+    if (!command) {
+      this.commands.forEach(c => {
+        if (!c.options.aliases) {
+          return
+        }
+
+        if (c.options.aliases.find(x => x === commandName)) {
+          command = c
+        }
+      })
+    }
 
     if (!command) {
       // TODO: Handle non commands, optionally
