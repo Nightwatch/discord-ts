@@ -6,9 +6,6 @@ notifications:
   email: false
 node_js:
   - '10'
-  - '11'
-  - '8'
-  - '6'
 script:
   - npm run build
 branches:
