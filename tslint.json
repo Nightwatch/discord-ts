@@ -17,6 +17,7 @@
     "no-parameter-reassignment": {
       "severity": "warn"
     },
-    "no-magic-numbers": false
+    "no-magic-numbers": false,
+    "only-arrow-functions": false
   }
 }

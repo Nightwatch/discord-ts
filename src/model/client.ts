@@ -5,8 +5,20 @@ import { Command, CommandoClientOptions } from '.'
 import { ArgumentType } from './argument-type'
 import { CommandoMessage } from './message'
 
+/**
+ * Extension of the Discord.js Client.
+ *
+ * Contains extra methods and properties for managing commands.
+ */
 export class CommandoClient extends Client {
+  /**
+   * Holds all of the registered commands.
+   */
   public commands: Map<string, Command> = new Map()
+
+  /**
+   * The ClientOptions which were passed in the constructor.
+   */
   public readonly options: CommandoClientOptions
 
   public constructor(options: CommandoClientOptions) {
@@ -19,6 +31,10 @@ export class CommandoClient extends Client {
     })
   }
 
+  /**
+   * Register a command object
+   * @param command - The command object
+   */
   public registerCommand(command: Command): void {
     if (this.commands.has(command.options.name)) {
       throw new Error(
@@ -31,16 +47,21 @@ export class CommandoClient extends Client {
     this.commands.set(command.options.name, command)
   }
 
-  public async registerCommandsIn(path: string | string[]): Promise<void> {
-    if (typeof path === 'string') {
-      return walk(path).then(files => {
+  /**
+   * Recursively finds all commands in a directory and registers them.
+   *
+   * @param filePath - The directory that contains commands.
+   */
+  public async registerCommandsIn(filePath: string | string[]): Promise<void> {
+    if (typeof filePath === 'string') {
+      return walk(filePath).then(files => {
         files.forEach((file: string) => {
           this.resolveCommand(file)
         })
       })
     }
 
-    path.forEach(async (p: string) => {
+    filePath.forEach(async (p: string) => {
       const files: string[] = await walk(p)
       files.forEach((file: string) => {
         this.resolveCommand(file)
@@ -48,6 +69,52 @@ export class CommandoClient extends Client {
     })
   }
 
+  /**
+   * Converts a string to a given argument type
+   * @param from - The string value given by the user.
+   * @param to - The expected type.
+   * @param guild - The guild the command was from.
+   */
+  private convertArgToType(
+    from: string,
+    to: ArgumentType | ArgumentType[],
+    guild?: Guild
+  ): string | number | GuildMember | undefined {
+    const convert = (toType: ArgumentType) => {
+      switch (toType) {
+        case 'number':
+          return Number(from)
+        case 'user':
+          if (!guild) {
+            return undefined
+          }
+
+          return this.getMemberFromMention(guild, from)
+        default:
+          return from
+      }
+    }
+
+    if (Array.isArray(to)) {
+      for (const t of to) {
+        const converted = convert(t)
+
+        if (converted) {
+          return converted
+        }
+      }
+
+      return undefined
+    }
+
+    return convert(to)
+  }
+
+  /**
+   * Finds a command by its name or an alias of the command.
+   *
+   * @param name - The command name to search.
+   */
   private getCommandByNameOrAlias(name: string): Command | undefined {
     const commandByName: Command | undefined = Command.find(this, name)
 
@@ -69,6 +136,12 @@ export class CommandoClient extends Client {
     }
   }
 
+  /**
+   * Converts the user arguments to an array with the same length as the expected arguments array.
+   *
+   * @param command - The command object.
+   * @param args - The array of arguments provided by the user.
+   */
   private getFormattedArgs(command: Command, args: string[]): string[] {
     let formattedArgs = args
 
@@ -87,8 +160,15 @@ export class CommandoClient extends Client {
     return formattedArgs
   }
 
-  // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
+  /**
+   * Returns a GuildMember from a mention.
+   *
+   * @param guild - The guild the mention came from.
+   * @param mention - The user mention.
+   */
   private getMemberFromMention(guild: Guild, mention: string): GuildMember | undefined {
+    // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
+
     if (!mention) {
       return undefined
     }
@@ -104,14 +184,46 @@ export class CommandoClient extends Client {
     }
   }
 
-  private mapArgsToObject(command: Command, args: string[]): object | undefined {
+  /**
+   * Handles exceptions generated from command execution.
+   */
+  private async handleCommandError(msg: CommandoMessage, err: Error): Promise<void> {
+    // tslint:disable-next-line: no-non-null-assertion
+    const owner = this.users.get(this.options.ownerId)!
+    const ownerDisplayString = `${owner.username}#${owner.discriminator}`
+    await msg
+      .reply(
+        `An error occurred during the execution of the \`${msg.command.options.name}\` command: ${
+          err.message
+        }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
+      )
+      .catch(_ => {
+        // swallow
+      })
+  }
+
+  /**
+   * Converts an array of arguments to an object key/value store with the designated type from the command args.
+   *
+   * @param command - The command object.
+   * @param args - The formatted argument string array.
+   */
+  private mapArgsToObject(msg: Message, command: Command, args: string[]): object | undefined {
     if (!command.options.args) {
       return undefined
     }
 
-    return command.options.args.reduce((p, c, i) => ({ [c.key]: args[i] }), {})
+    return command.options.args.reduce(
+      (p, c, i) => ({ [c.key]: this.convertArgToType(args[i], c.type, msg.guild) }),
+      {}
+    )
   }
 
+  /**
+   * Handles when a user sends a message.
+   *
+   * @param msg - Message object
+   */
   private async onMessage(msg: Message): Promise<void> {
     if (msg.author.bot) {
       return
@@ -144,15 +256,27 @@ export class CommandoClient extends Client {
     return this.runCommand(commandoMessage, command)
   }
 
-  private resolveCommand(path: string): void {
+  /**
+   * Tries to get command from a single file.
+   *
+   * @param filePath - Absolute path of command file.
+   */
+  private resolveCommand(filePath: string): void {
     try {
-      const command = require(path) as Command
+      const command = require(filePath) as Command
       this.registerCommand(command)
     } catch {
       // swallow
     }
   }
 
+  /**
+   * Wrapper method to execute a command. Checks permission and handles exceptions.
+   *
+   * @param msg - The message object.
+   * @param command - The command object to be ran.
+   * @param args - Command args.
+   */
   private async runCommand(msg: CommandoMessage, command: Command, args?: object): Promise<void> {
     if (!command.hasPermission(msg)) {
       await msg.reply(`You do not have permission to use the \`${command.options.name}\` command.`)
@@ -163,22 +287,17 @@ export class CommandoClient extends Client {
     return command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
   }
 
-  private async handleCommandError(msg: CommandoMessage, err: Error): Promise<void> {
-    // tslint:disable-next-line: no-non-null-assertion
-    const owner = this.users.get(this.options.ownerId)!
-    const ownerDisplayString = `${owner.username}#${owner.discriminator}`
-    await msg
-      .reply(
-        `An error occurred during the execution of the \`${msg.command.options.name}\` command: ${
-          err.message
-        }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
-      )
-      .catch(_ => {
-        // swallow
-      })
-  }
-
-  private async runCommandWithArgs(msg: CommandoMessage, command: Command, args: string[]) {
+  /**
+   * Helper method to validate args and run command with args.
+   * @param msg - The message object.
+   * @param command - The command object to be ran.
+   * @param args - Command args.
+   */
+  private async runCommandWithArgs(
+    msg: CommandoMessage,
+    command: Command,
+    args: string[]
+  ): Promise<void> {
     if (!command.options.args) {
       return this.runCommand(msg, command)
     }
@@ -197,11 +316,18 @@ export class CommandoClient extends Client {
       return
     }
 
-    const argsObject = this.mapArgsToObject(command, formattedArgs)
+    const argsObject = this.mapArgsToObject(msg, command, formattedArgs)
 
     return this.runCommand(msg, command, argsObject)
   }
 
+  /**
+   * Validates user arguments against required command arguments.
+   *
+   * @param msg - The message object.
+   * @param command - The command object.
+   * @param args - The arguments provided by the user.
+   */
   private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {
     for (let i = 0; i < args.length; i++) {
       if (!command.options.args) {
@@ -238,6 +364,12 @@ export class CommandoClient extends Client {
     return true
   }
 
+  /**
+   * Validates a value against a single type
+   * @param msg - The message object.
+   * @param expected - The expected type.
+   * @param value - The value from the user.
+   */
   private validateType(msg: Message, expected: ArgumentType, value: string): boolean {
     switch (expected) {
       case 'number':
@@ -255,6 +387,9 @@ export class CommandoClient extends Client {
 }
 
 // source: https://gist.github.com/kethinov/6658166#gistcomment-2733303
+/**
+ * Gets all files in directory, recursively.
+ */
 async function walk(dir: string, fileList: string[] = []): Promise<string[]> {
   const files = await fs.readdir(dir)
 
