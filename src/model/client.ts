@@ -76,21 +76,10 @@ export class CommandoClient extends Client {
     }
 
     if (command.options.args) {
-      if (command.options.args.length > args.length) {
-        await msg.reply(`Insufficient arguments. Expected ${command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
-        return
-      }
-
-      const formattedArgs = this.getFormattedArgs(command, args)
-
-      const argsValid = this.validateArgs(msg, command, formattedArgs)
-
-      if (!argsValid) {
-        return
-      }
+      return this.runCommandWithArgs(msg, command, args)
     }
 
-    await command.run(msg)
+    return this.runCommand(msg, command)
   }
 
   private getFormattedArgs(command: Command, args: string[]) {
@@ -169,21 +158,7 @@ export class CommandoClient extends Client {
     }
   }
 
-  // from https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
-  private getUserFromMention(mention: string) {
-    if (!mention) return
-
-    if (mention.startsWith('<@') && mention.endsWith('>')) {
-      mention = mention.slice(2, -1)
-
-      if (mention.startsWith('!')) {
-        mention = mention.slice(1)
-      }
-
-      return this.users.get(mention)
-    }
-  }
-
+  // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
   private getMemberFromMention(guild: Guild, mention: string) {
     if (!mention) return
 
@@ -197,9 +172,40 @@ export class CommandoClient extends Client {
       return guild.members.get(mention)
     }
   }
+
+  private mapArgsToObject(command: Command, args: string[]) {
+    return command.options.args!.reduce((p, c, i) => ({ [c.key]: args[i] }), {})
+  }
+
+  private async runCommandWithArgs(msg: Message, command: Command, args: string[]) {
+    if (command.options.args!.length > args.length) {
+      await msg.reply(`Insufficient arguments. Expected ${command.options.args!.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+      return
+    }
+
+    const formattedArgs = this.getFormattedArgs(command, args)
+
+    const argsValid = this.validateArgs(msg, command, formattedArgs)
+
+    if (!argsValid) {
+      return
+    }
+
+    const argsObject = this.mapArgsToObject(command, formattedArgs)
+
+    return this.runCommand(msg, command, argsObject)
+  }
+
+  private async runCommand(msg: Message, command: Command, args?: object) {
+    if (!command.hasPermission(msg)) {
+      return
+    }
+
+    return command.run(msg, args)
+  }
 }
 
-// from https://gist.github.com/kethinov/6658166#gistcomment-2733303
+// source: https://gist.github.com/kethinov/6658166#gistcomment-2733303
 async function walk(dir: string, fileList: string[] = []) {
   const files = await fs.readdir(dir)
 
