@@ -64,55 +64,68 @@ export class CommandoClient extends Client {
     }
 
     const withoutPrefix = msg.content.slice(this.options.commandPrefix.length)
-    const split = withoutPrefix.split(/ +/)
+    const split = withoutPrefix.split(' ')
     const commandName = split[0]
     const args = split.slice(1)
 
-    let command = Command.find(this, commandName)
-
-    if (!command) {
-      this.commands.forEach(c => {
-        if (!c.options.aliases) {
-          return
-        }
-
-        if (c.options.aliases.find(x => x === commandName)) {
-          command = c
-        }
-      })
-    }
+    let command = this.getCommandByNameOrAlias(commandName)
 
     if (!command) {
       // TODO: Handle non commands, optionally
       return
     }
 
-    if (!command.options.args) {
-      return
-    }
+    if (command.options.args) {
+      if (command.options.args.length > args.length) {
+        await msg.reply(`Insufficient arguments. Expected ${command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+        return
+      }
 
-    if (command.options.args.length > args.length) {
-      await msg.reply(`Insufficient arguments. Expected ${command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
-      return
-    }
+      const formattedArgs = this.getFormattedArgs(command, args)
 
-    let finalArgs = args
+      const argsValid = this.validateArgs(msg, command, formattedArgs)
 
-    if (args.length > command.options.args.length) {
-      const finalArgStartIndex = command.options.args.length - 1
-      const combinedFinalArg = args.slice(finalArgStartIndex).join(' ')
-      const newArgs = args.slice(0, finalArgStartIndex)
-      newArgs.push(combinedFinalArg)
-      finalArgs = newArgs
-    }
-
-    const argsValid = this.validateArgs(msg, command, finalArgs)
-
-    if (!argsValid) {
-      return
+      if (!argsValid) {
+        return
+      }
     }
 
     await command.run(msg)
+  }
+
+  private getFormattedArgs(command: Command, args: string[]) {
+    let formattedArgs = args
+
+    if (args.length > command.options.args!.length) {
+      const formattedArgStartIndex = command.options.args!.length - 1
+      const combinedFinalArg = args.slice(formattedArgStartIndex).join(' ')
+      const newArgs = args.slice(0, formattedArgStartIndex)
+      newArgs.push(combinedFinalArg)
+      formattedArgs = newArgs
+    }
+
+    return formattedArgs
+  }
+
+  private getCommandByNameOrAlias(name: string) {
+    const command = Command.find(this, name)
+
+    if (command) {
+      return command
+    }
+
+    const iterator = this.commands.values()
+
+    for (let i = 0; i < this.commands.size; i++) {
+      const command = iterator.next().value
+      if (!command.options.aliases) {
+        continue
+      }
+
+      if (command.options.aliases.find(x => x === name)) {
+        return command
+      }
+    }
   }
 
   private async validateArgs(msg: Message, command: Command, args: string[]) {
