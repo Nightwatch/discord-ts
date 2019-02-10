@@ -1,9 +1,7 @@
 import { Client, Guild, GuildMember, Message } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { Command, CommandoClientOptions } from '.'
-import { ArgumentType } from './argument-type'
-import { CommandoMessage } from './message'
+import { ArgumentType, Command, CommandoClientOptions, CommandoMessage } from '.'
 
 /**
  * Extension of the Discord.js Client.
@@ -26,7 +24,7 @@ export class CommandoClient extends Client {
 
     this.options = options
 
-    this.on('message', this.onMessage)
+    this.on('message', async (msg: CommandoMessage) => this.onMessage(msg))
   }
 
   /**
@@ -233,7 +231,7 @@ export class CommandoClient extends Client {
     }
 
     return msg.command.options.args.reduce(
-      (p, c, i) => ({ [c.key]: this.convertArgToType(args[i], c.type, msg.guild) }),
+      (_, c, i) => ({ [c.key]: this.convertArgToType(args[i], c.type, msg.guild) }),
       {}
     )
   }
