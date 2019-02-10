@@ -1,3 +1,5 @@
+export * from './argument'
+export * from './argument-type'
 export * from './client'
 export * from './client-options'
 export * from './command'

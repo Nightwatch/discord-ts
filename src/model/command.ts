@@ -1,6 +1,6 @@
 import { CommandOptions, CommandoClient, CommandoMessage } from '.'
 
-export class Command {
+export abstract class Command {
   public readonly options: CommandOptions
   public readonly client: CommandoClient
 
@@ -9,11 +9,11 @@ export class Command {
     this.client = client
   }
 
-  public hasPermission(msg: CommandoMessage): boolean {
+  public async hasPermission(msg: CommandoMessage): Promise<boolean> {
     return true
   }
 
-  public async run(msg: CommandoMessage): Promise<any> {}
+  public abstract async run(msg: CommandoMessage, args?: any): Promise<void>
 
   public static find(client: CommandoClient, name: string) {
     return client.commands.get(name)
