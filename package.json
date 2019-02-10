@@ -63,6 +63,6 @@
     "typescript": "^3.0.3"
   },
   "dependencies": {
-    "discord.js": "https://github.com/discordjs/discord.js#3dff5058f0beae01cec0abe27e3a43c8fd7c60ce"
+    "discord.js": "discordjs/discord.js"
   }
 }
