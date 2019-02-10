@@ -1,5 +1,6 @@
 import { DMChannel, GroupDMChannel, Message, TextChannel } from 'discord.js'
 import { CommandoClient } from '.'
+import { Command } from './command'
 
 /**
  *  Subclass of the Discord.js Message class.
@@ -8,16 +9,18 @@ import { CommandoClient } from '.'
  */
 export class CommandoMessage extends Message {
   /**
-   * The parent client object.
+   * The command that was ran.
    */
-  public readonly client: CommandoClient
+  public command?: Command
 
-  public constructor(
-    client: CommandoClient,
-    data: object,
-    channel: DMChannel | TextChannel | GroupDMChannel
-  ) {
-    super(client, data, channel)
-    this.client = client
+  /**
+   * The parent Discord.js Message object
+   */
+  public message: Message
+
+  public constructor(message: Message, command?: Command) {
+    super(message.client, message, message.channel)
+    this.message = message
+    this.command = command
   }
 }

@@ -3,6 +3,7 @@ import { promises as fs } from 'fs'
 import * as path from 'path'
 import { Command, CommandoClientOptions } from '.'
 import { ArgumentType } from './argument-type'
+import { CommandoMessage } from './message'
 
 export class CommandoClient extends Client {
   public commands: Map<string, Command> = new Map()
@@ -133,10 +134,14 @@ export class CommandoClient extends Client {
     }
 
     if (command.options.args) {
-      return this.runCommandWithArgs(msg, command, args)
+      const commandoMessageWithArgs = new CommandoMessage(msg, command)
+
+      return this.runCommandWithArgs(commandoMessageWithArgs, command, args)
     }
 
-    return this.runCommand(msg, command)
+    const commandoMessage = new CommandoMessage(msg, command)
+
+    return this.runCommand(commandoMessage, command)
   }
 
   private resolveCommand(path: string) {
@@ -148,15 +153,7 @@ export class CommandoClient extends Client {
     }
   }
 
-  private async runCommand(msg: Message, command: Command, args?: object) {
-    if (!command.hasPermission(msg)) {
-      return
-    }
-
-    return command.run(msg, args)
-  }
-
-  private async runCommandWithArgs(msg: Message, command: Command, args: string[]) {
+  private async runCommandWithArgs(msg: CommandoMessage, command: Command, args: string[]) {
     if (!command.options.args) {
       return this.runCommand(msg, command)
     }
@@ -178,6 +175,14 @@ export class CommandoClient extends Client {
     const argsObject = this.mapArgsToObject(command, formattedArgs)
 
     return this.runCommand(msg, command, argsObject)
+  }
+
+  private async runCommand(msg: CommandoMessage, command: Command, args?: object) {
+    if (!command.hasPermission(msg)) {
+      return
+    }
+
+    return command.run(msg, args)
   }
 
   private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {
