@@ -16,13 +16,17 @@ export class CommandoClient extends Client {
   public registerCommandsIn(path: string | string[]) {
     if (typeof path === 'string') {
       return walk(path).then(files => {
-        this.resolveCommand(path)
+        files.forEach(file => {
+          this.resolveCommand(file)
+        })
       })
     }
 
     return path.forEach(async p => {
       const files = await walk(p)
-      this.resolveCommand(p)
+      files.forEach(file => {
+        this.resolveCommand(file)
+      })
     })
   }
 
