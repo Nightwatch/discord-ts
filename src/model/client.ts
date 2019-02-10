@@ -3,6 +3,7 @@ import { CommandoClientOptions, Command } from '.'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { ArgumentType } from './argument-type'
+import { CommandoMessage } from './message'
 
 export class CommandoClient extends Client {
   public readonly options: CommandoClientOptions
@@ -18,19 +19,21 @@ export class CommandoClient extends Client {
 
   public registerCommandsIn(path: string | string[]) {
     if (typeof path === 'string') {
-      return walk(path).then(files => {
+      walk(path).then(files => {
+        files.forEach(file => {
+          this.resolveCommand(file)
+        })
+      })
+    } else {
+      return path.forEach(async p => {
+        const files = await walk(p)
         files.forEach(file => {
           this.resolveCommand(file)
         })
       })
     }
 
-    return path.forEach(async p => {
-      const files = await walk(p)
-      files.forEach(file => {
-        this.resolveCommand(file)
-      })
-    })
+    return this
   }
 
   public registerCommand(command: Command) {
@@ -43,6 +46,15 @@ export class CommandoClient extends Client {
     }
 
     this.commands.set(command.options.name, command)
+    return this
+  }
+
+  public onCommandMessage(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void) {
+    return this.on('commandMessage', callback)
+  }
+
+  public onInvalidCommand(callback: (msg: CommandoMessage) => void) {
+    return this.on('invalidCommand', callback)
   }
 
   private resolveCommand(path: string) {
@@ -54,16 +66,33 @@ export class CommandoClient extends Client {
     }
   }
 
-  private async onMessage(msg: Message) {
+  private async onMessage(msg: CommandoMessage) {
     if (msg.author.bot) {
       return
     }
 
-    if (!msg.content.startsWith(this.options.commandPrefix)) {
-      return
+    let prefix: string | undefined = undefined
+
+    if (typeof this.options.commandPrefix === 'string') {
+      if (!msg.content.startsWith(this.options.commandPrefix)) {
+        return
+      }
+
+      prefix = this.options.commandPrefix
+    } else {
+      for (let pref of this.options.commandPrefix) {
+        if (msg.content.startsWith(pref)) {
+          prefix = pref
+          break
+        }
+      }
+
+      if (prefix === undefined) {
+        return
+      }
     }
 
-    const withoutPrefix = msg.content.slice(this.options.commandPrefix.length)
+    const withoutPrefix = msg.content.slice(prefix.length)
     const split = withoutPrefix.split(' ')
     const commandName = split[0]
     const args = split.slice(1)
@@ -71,9 +100,11 @@ export class CommandoClient extends Client {
     let command = this.getCommandByNameOrAlias(commandName)
 
     if (!command) {
-      // TODO: Handle non commands, optionally
+      this.emit('invalidCommand', msg)
       return
     }
+
+    this.emit('commandMessage', msg, command, prefix)
 
     if (command.options.args) {
       return this.runCommandWithArgs(msg, command, args)
