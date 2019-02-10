@@ -1,9 +1,9 @@
 import { Client, Guild, GuildMember, Message } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { Command, CommandoClientOptions } from '.'
 import { ArgumentType } from './argument-type'
 import { CommandoMessage } from './message'
+import { Command, CommandoClientOptions } from '.'
 
 /**
  * Extension of the Discord.js Client.

@@ -1,4 +1,4 @@
-import { DMChannel, GroupDMChannel, Message, TextChannel } from 'discord.js'
+import { Message } from 'discord.js'
 import { CommandoClient } from '.'
 import { Command } from './command'
 
