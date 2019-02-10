@@ -877,14 +877,15 @@ diff@^3.1.0, diff@^3.2.0:
   resolved "https://registry.yarnpkg.com/diff/-/diff-3.5.0.tgz#800c0dd1e0a8bfbc95835c202ad220fe317e5a12"
   integrity sha512-A46qtFgd+g7pDZinpnwiRJtxbC1hpgf0uzP3iG89scHk0AUC7A1TGxf5OiiOUv/JMZR8GOt8hL900hV0bOy5xA==
 
-discord.js@discordjs/discord.js:
+"discord.js@https://github.com/discordjs/discord.js#3dff5058f0beae01cec0abe27e3a43c8fd7c60ce":
   version "12.0.0-dev"
-  resolved "https://codeload.github.com/discordjs/discord.js/tar.gz/ff95e587cb5a49921eb206dd2cd034d692e99bff"
+  resolved "https://github.com/discordjs/discord.js#3dff5058f0beae01cec0abe27e3a43c8fd7c60ce"
   dependencies:
     form-data "^2.3.2"
     node-fetch "^2.1.2"
     pako "^1.0.0"
     prism-media amishshah/prism-media
+    setimmediate "^1.0.5"
     tweetnacl "^1.0.0"
     ws "^6.0.0"
 
