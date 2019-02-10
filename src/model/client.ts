@@ -112,7 +112,7 @@ export class CommandoClient extends Client {
     return command.options.args.reduce((p, c, i) => ({ [c.key]: args[i] }), {})
   }
 
-  private async onMessage(msg: Message) {
+  private async onMessage(msg: Message): Promise<void> {
     if (msg.author.bot) {
       return
     }
@@ -144,13 +144,38 @@ export class CommandoClient extends Client {
     return this.runCommand(commandoMessage, command)
   }
 
-  private resolveCommand(path: string) {
+  private resolveCommand(path: string): void {
     try {
       const command = require(path) as Command
       this.registerCommand(command)
     } catch {
       // swallow
     }
+  }
+
+  private async runCommand(msg: CommandoMessage, command: Command, args?: object): Promise<void> {
+    if (!command.hasPermission(msg)) {
+      await msg.reply(`You do not have permission to use the \`${command.options.name}\` command.`)
+
+      return
+    }
+
+    return command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
+  }
+
+  private async handleCommandError(msg: CommandoMessage, err: Error): Promise<void> {
+    // tslint:disable-next-line: no-non-null-assertion
+    const owner = this.users.get(this.options.ownerId)!
+    const ownerDisplayString = `${owner.username}#${owner.discriminator}`
+    await msg
+      .reply(
+        `An error occurred during the execution of the \`${msg.command.options.name}\` command: ${
+          err.message
+        }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
+      )
+      .catch(_ => {
+        // swallow
+      })
   }
 
   private async runCommandWithArgs(msg: CommandoMessage, command: Command, args: string[]) {
@@ -175,14 +200,6 @@ export class CommandoClient extends Client {
     const argsObject = this.mapArgsToObject(command, formattedArgs)
 
     return this.runCommand(msg, command, argsObject)
-  }
-
-  private async runCommand(msg: CommandoMessage, command: Command, args?: object) {
-    if (!command.hasPermission(msg)) {
-      return
-    }
-
-    return command.run(msg, args)
   }
 
   private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {

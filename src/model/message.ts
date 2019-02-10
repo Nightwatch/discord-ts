@@ -9,18 +9,24 @@ import { Command } from './command'
  */
 export class CommandoMessage extends Message {
   /**
+   * The base client object.
+   */
+  public client: CommandoClient
+
+  /**
    * The command that was ran.
    */
-  public command?: Command
+  public command: Command
 
   /**
    * The parent Discord.js Message object
    */
   public message: Message
 
-  public constructor(message: Message, command?: Command) {
+  public constructor(message: Message, command: Command) {
     super(message.client, message, message.channel)
     this.message = message
     this.command = command
+    this.client = command.client
   }
 }
