@@ -1,6 +1,22 @@
 {
   "extends": [
+    "tslint:all",
     "tslint-config-standard",
     "tslint-config-prettier"
-  ]
+  ],
+  "rules": {
+    "file-name-casing": [true, "kebab-case"],
+    "interface-name": false,
+    "strict-boolean-expressions": false,
+    "typedef": {
+      "options": ["call-signature"]
+    },
+    "increment-decrement": false,
+    "no-inferred-empty-object-type": false,
+    "prefer-function-over-method": false,
+    "no-parameter-reassignment": {
+      "severity": "warn"
+    },
+    "no-magic-numbers": false
+  }
 }

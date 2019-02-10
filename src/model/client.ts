@@ -1,39 +1,24 @@
-import { Client, Message, Guild } from 'discord.js'
-import { CommandoClientOptions, Command } from '.'
+import { Client, Guild, GuildMember, Message } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
+import { Command, CommandoClientOptions } from '.'
 import { ArgumentType } from './argument-type'
 
 export class CommandoClient extends Client {
-  public readonly options: CommandoClientOptions
   public commands: Map<string, Command> = new Map()
+  public readonly options: CommandoClientOptions
 
-  constructor(options: CommandoClientOptions) {
+  public constructor(options: CommandoClientOptions) {
     super(options)
 
     this.options = options
 
-    this.on('message', this.onMessage)
-  }
-
-  public registerCommandsIn(path: string | string[]) {
-    if (typeof path === 'string') {
-      return walk(path).then(files => {
-        files.forEach(file => {
-          this.resolveCommand(file)
-        })
-      })
-    }
-
-    return path.forEach(async p => {
-      const files = await walk(p)
-      files.forEach(file => {
-        this.resolveCommand(file)
-      })
+    this.on('message', async (msg: Message) => {
+      await this.onMessage(msg)
     })
   }
 
-  public registerCommand(command: Command) {
+  public registerCommand(command: Command): void {
     if (this.commands.has(command.options.name)) {
       throw new Error(
         `Command '${
@@ -45,13 +30,85 @@ export class CommandoClient extends Client {
     this.commands.set(command.options.name, command)
   }
 
-  private resolveCommand(path: string) {
-    try {
-      const command = require(path) as Command
-      this.registerCommand(command)
-    } catch {
-      // swallow
+  public async registerCommandsIn(path: string | string[]): Promise<void> {
+    if (typeof path === 'string') {
+      return walk(path).then(files => {
+        files.forEach((file: string) => {
+          this.resolveCommand(file)
+        })
+      })
     }
+
+    path.forEach(async (p: string) => {
+      const files: string[] = await walk(p)
+      files.forEach((file: string) => {
+        this.resolveCommand(file)
+      })
+    })
+  }
+
+  private getCommandByNameOrAlias(name: string): Command | undefined {
+    const commandByName: Command | undefined = Command.find(this, name)
+
+    if (commandByName) {
+      return commandByName
+    }
+
+    const iterator: IterableIterator<Command> = this.commands.values()
+
+    for (let i = 0; i < this.commands.size; i++) {
+      const commandByAlias = iterator.next().value
+      if (!commandByAlias.options.aliases) {
+        continue
+      }
+
+      if (commandByAlias.options.aliases.find(x => x === name)) {
+        return commandByAlias
+      }
+    }
+  }
+
+  private getFormattedArgs(command: Command, args: string[]): string[] {
+    let formattedArgs = args
+
+    if (!command.options.args) {
+      return args
+    }
+
+    if (args.length > command.options.args.length) {
+      const formattedArgStartIndex = command.options.args.length - 1
+      const combinedFinalArg = args.slice(formattedArgStartIndex).join(' ')
+      const newArgs = args.slice(0, formattedArgStartIndex)
+      newArgs.push(combinedFinalArg)
+      formattedArgs = newArgs
+    }
+
+    return formattedArgs
+  }
+
+  // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
+  private getMemberFromMention(guild: Guild, mention: string): GuildMember | undefined {
+    if (!mention) {
+      return undefined
+    }
+
+    if (mention.startsWith('<@') && mention.endsWith('>')) {
+      mention = mention.slice(2, -1)
+
+      if (mention.startsWith('!')) {
+        mention = mention.slice(1)
+      }
+
+      return guild.members.get(mention)
+    }
+  }
+
+  private mapArgsToObject(command: Command, args: string[]): object | undefined {
+    if (!command.options.args) {
+      return undefined
+    }
+
+    return command.options.args.reduce((p, c, i) => ({ [c.key]: args[i] }), {})
   }
 
   private async onMessage(msg: Message) {
@@ -68,7 +125,7 @@ export class CommandoClient extends Client {
     const commandName = split[0]
     const args = split.slice(1)
 
-    let command = this.getCommandByNameOrAlias(commandName)
+    const command = this.getCommandByNameOrAlias(commandName)
 
     if (!command) {
       // TODO: Handle non commands, optionally
@@ -82,104 +139,31 @@ export class CommandoClient extends Client {
     return this.runCommand(msg, command)
   }
 
-  private getFormattedArgs(command: Command, args: string[]) {
-    let formattedArgs = args
-
-    if (args.length > command.options.args!.length) {
-      const formattedArgStartIndex = command.options.args!.length - 1
-      const combinedFinalArg = args.slice(formattedArgStartIndex).join(' ')
-      const newArgs = args.slice(0, formattedArgStartIndex)
-      newArgs.push(combinedFinalArg)
-      formattedArgs = newArgs
-    }
-
-    return formattedArgs
-  }
-
-  private getCommandByNameOrAlias(name: string) {
-    const command = Command.find(this, name)
-
-    if (command) {
-      return command
-    }
-
-    const iterator = this.commands.values()
-
-    for (let i = 0; i < this.commands.size; i++) {
-      const command = iterator.next().value
-      if (!command.options.aliases) {
-        continue
-      }
-
-      if (command.options.aliases.find(x => x === name)) {
-        return command
-      }
+  private resolveCommand(path: string) {
+    try {
+      const command = require(path) as Command
+      this.registerCommand(command)
+    } catch {
+      // swallow
     }
   }
 
-  private async validateArgs(msg: Message, command: Command, args: string[]) {
-    for (let i = 0; i < args.length; i++) {
-      const expectedType = command.options.args![i].type
-
-      if (Array.isArray(expectedType)) {
-        let foundType = false
-        for (const t of expectedType) {
-          if (this.validateType(msg, t, args[i])) {
-            foundType = true
-            break
-          }
-        }
-        if (!foundType) {
-          await msg.reply(`Argument type mismatch at '${args[i]}'`)
-          return false
-        }
-        return true
-      }
-
-      if (!this.validateType(msg, expectedType, args[i])) {
-        await msg.reply(`Argument type mismatch at '${args[i]}'`)
-        return false
-      }
+  private async runCommand(msg: Message, command: Command, args?: object) {
+    if (!command.hasPermission(msg)) {
+      return
     }
-    return true
-  }
 
-  private validateType(msg: Message, expected: ArgumentType, value: string): boolean {
-    switch (expected) {
-      case 'number':
-        return !!Number(value)
-      case 'user':
-        if (!msg.guild) {
-          return false
-        }
-        return !!this.getMemberFromMention(msg.guild, value)
-      default:
-        return true
-    }
-  }
-
-  // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
-  private getMemberFromMention(guild: Guild, mention: string) {
-    if (!mention) return
-
-    if (mention.startsWith('<@') && mention.endsWith('>')) {
-      mention = mention.slice(2, -1)
-
-      if (mention.startsWith('!')) {
-        mention = mention.slice(1)
-      }
-
-      return guild.members.get(mention)
-    }
-  }
-
-  private mapArgsToObject(command: Command, args: string[]) {
-    return command.options.args!.reduce((p, c, i) => ({ [c.key]: args[i] }), {})
+    return command.run(msg, args)
   }
 
   private async runCommandWithArgs(msg: Message, command: Command, args: string[]) {
-    if (command.options.args!.length > args.length) {
-      await msg.reply(`Insufficient arguments. Expected ${command.options.args!.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+    if (!command.options.args) {
+      return this.runCommand(msg, command)
+    }
+
+    if (command.options.args.length > args.length) {
+      await msg.reply(`Insufficient arguments. Expected ${command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+
       return
     }
 
@@ -196,17 +180,60 @@ export class CommandoClient extends Client {
     return this.runCommand(msg, command, argsObject)
   }
 
-  private async runCommand(msg: Message, command: Command, args?: object) {
-    if (!command.hasPermission(msg)) {
-      return
+  private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {
+    for (let i = 0; i < args.length; i++) {
+      if (!command.options.args) {
+        continue
+      }
+
+      const expectedType = command.options.args[i].type
+
+      if (Array.isArray(expectedType)) {
+        let foundType = false
+        for (const t of expectedType) {
+          if (this.validateType(msg, t, args[i])) {
+            foundType = true
+            break
+          }
+        }
+
+        if (!foundType) {
+          await msg.reply(`Argument type mismatch at '${args[i]}'`)
+
+          return false
+        }
+
+        return true
+      }
+
+      if (!this.validateType(msg, expectedType, args[i])) {
+        await msg.reply(`Argument type mismatch at '${args[i]}'`)
+
+        return false
+      }
     }
 
-    return command.run(msg, args)
+    return true
+  }
+
+  private validateType(msg: Message, expected: ArgumentType, value: string): boolean {
+    switch (expected) {
+      case 'number':
+        return !!Number(value)
+      case 'user':
+        if (!msg.guild) {
+          return false
+        }
+
+        return !!this.getMemberFromMention(msg.guild, value)
+      default:
+        return true
+    }
   }
 }
 
 // source: https://gist.github.com/kethinov/6658166#gistcomment-2733303
-async function walk(dir: string, fileList: string[] = []) {
+async function walk(dir: string, fileList: string[] = []): Promise<string[]> {
   const files = await fs.readdir(dir)
 
   for (const file of files) {
