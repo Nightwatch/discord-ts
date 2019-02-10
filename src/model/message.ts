@@ -2,8 +2,6 @@ import { DMChannel, GroupDMChannel, Message, Structures, TextChannel } from 'dis
 import { CommandoClient } from '.'
 import { Command } from './command'
 
-Structures.extend('Message', () => CommandoMessage)
-
 /**
  * Subclass of the Discord.js Message class.
  */
@@ -21,3 +19,5 @@ export class CommandoMessage extends Message {
     super(client, data, channel)
   }
 }
+
+Structures.extend('Message', () => CommandoMessage)
