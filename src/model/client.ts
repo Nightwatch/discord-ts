@@ -33,7 +33,9 @@ export class CommandoClient extends Client {
    * Calls a callback when a message containing a command is processed.
    * @param callback The function to call on the message
    */
-  public onCommandMessage(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void): this {
+  public onCommandMessage(
+    callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void
+  ): this {
     return this.on('commandMessage', callback)
   }
 
@@ -187,14 +189,16 @@ export class CommandoClient extends Client {
       return undefined
     }
 
-    if (mention.startsWith('<@') && mention.endsWith('>')) {
-      mention = mention.slice(2, -1)
+    let id: string
 
-      if (mention.startsWith('!')) {
-        mention = mention.slice(1)
+    if (mention.startsWith('<@') && mention.endsWith('>')) {
+      id = mention.slice(2, -1)
+
+      if (id.startsWith('!')) {
+        id = mention.slice(1)
       }
 
-      return guild.members.get(mention)
+      return guild.members.get(id)
     }
   }
 
@@ -316,7 +320,9 @@ export class CommandoClient extends Client {
     }
 
     if (!msg.command.hasPermission(msg)) {
-      await msg.reply(`You do not have permission to use the \`${msg.command.options.name}\` command.`)
+      await msg.reply(
+        `You do not have permission to use the \`${msg.command.options.name}\` command.`
+      )
 
       return
     }
@@ -330,10 +336,7 @@ export class CommandoClient extends Client {
    * @param command - The command object to be ran.
    * @param args - Command args.
    */
-  private async runCommandWithArgs(
-    msg: CommandoMessage,
-    args: string[]
-  ): Promise<void> {
+  private async runCommandWithArgs(msg: CommandoMessage, args: string[]): Promise<void> {
     if (!msg.command) {
       return
     }
@@ -434,8 +437,9 @@ export class CommandoClient extends Client {
 /**
  * Gets all files in directory, recursively.
  */
-async function walk(dir: string, fileList: string[] = []): Promise<string[]> {
+async function walk(dir: string, fileListArg: string[] = []): Promise<string[]> {
   const files = await fs.readdir(dir)
+  let fileList = fileListArg
 
   for (const file of files) {
     const filepath = path.join(dir, file)
