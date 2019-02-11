@@ -1,7 +1,8 @@
-import { Client, Guild, GuildMember, Message } from 'discord.js'
+import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { ArgumentType, Command, CommandoClientOptions, CommandoMessage } from '.'
+import { DefaultOptions } from './constants'
 
 /**
  * Extension of the Discord.js Client.
@@ -20,7 +21,7 @@ export class CommandoClient extends Client {
   public readonly options: CommandoClientOptions
 
   public constructor(options: CommandoClientOptions) {
-    super(options)
+    super(Util.mergeDefault(DefaultOptions, options))
 
     this.options = options
 

@@ -20,7 +20,7 @@ module.exports = class AddNumbersCommand extends commando.Command {
     let total = 0
     let nums = args.numbers.split(' ')
 
-    for (let num in nums) {
+    for (let num of nums) {
       num = Number(num)
 
       if (!isNaN(num)) {

@@ -10,7 +10,6 @@ const client = new commando.CommandoClient({
 client
 	.on('error', console.error)
   .on('warn', console.warn)
-  .on('debug', console.log)
 	.on('ready', () => {
 		console.log(`Client ready; logged in as ${client.user.username}#${client.user.discriminator} (${client.user.id})`)
 	})
@@ -21,4 +20,6 @@ client
     console.warn('Reconnecting...')
   })
 
-client.registerCommandsIn(path.join(__dirname, 'commands')).then(() => client.login(token).catch(console.error))
+client.registerCommandsIn(path.join(__dirname, 'commands')).then(() => {
+  client.login(token).catch(console.error)
+})
