@@ -26,7 +26,8 @@ export class HelpCommand extends Command {
    * Ran when the user runs `[prefix]`help
    *
    * @param msg The message sent by the user
-   * @param args The command the user wants help with.
+   * @param args The arguments
+   * @param args.commandArg The command the user wants help with.
    */
   // tslint:disable-next-line completed-docs
   public async run(msg: CommandoMessage, args: { commandArg: string }): Promise<void> {
