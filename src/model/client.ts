@@ -68,9 +68,7 @@ export class CommandoClient extends Client {
     if (typeof filePath === 'string') {
       return walk(filePath).then(files => {
         files.forEach(async (file: string) => {
-          await this.resolveCommand(
-            `${filePath}${filePath.endsWith('\\') || filePath.endsWith('/') ? '' : '/'}${file}`
-          )
+          await this.resolveCommand(path.join(filePath, file))
         })
       })
     }
@@ -78,7 +76,7 @@ export class CommandoClient extends Client {
     filePath.forEach(async (p: string) => {
       const files: string[] = await walk(p)
       files.forEach(async (file: string) => {
-        await this.resolveCommand(`${p}${p.endsWith('\\') || p.endsWith('/') ? '' : '/'}${file}`)
+        await this.resolveCommand(path.join(p, file))
       })
     })
   }
