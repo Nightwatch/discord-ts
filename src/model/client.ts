@@ -55,16 +55,16 @@ export class CommandoClient extends Client {
   public async registerCommandsIn(filePath: string | string[]): Promise<void> {
     if (typeof filePath === 'string') {
       return walk(filePath).then(files => {
-        files.forEach((file: string) => {
-          this.resolveCommand(file)
+        files.forEach(async (file: string) => {
+          await this.resolveCommand(file)
         })
       })
     }
 
     filePath.forEach(async (p: string) => {
       const files: string[] = await walk(p)
-      files.forEach((file: string) => {
-        this.resolveCommand(file)
+      files.forEach(async (file: string) => {
+        await this.resolveCommand(file)
       })
     })
   }
@@ -261,9 +261,9 @@ export class CommandoClient extends Client {
    *
    * @param filePath - Absolute path of command file.
    */
-  private resolveCommand(filePath: string): void {
+  private async resolveCommand(filePath: string): Promise<void> {
     try {
-      const ResolvableCommand = require(filePath)
+      const ResolvableCommand = await import(filePath)
 
       // tslint:disable-next-line: no-unsafe-any
       const instance: Command = new ResolvableCommand(this)
