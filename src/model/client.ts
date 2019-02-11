@@ -33,16 +33,16 @@ export class CommandoClient extends Client {
    */
   public onCommandMessage(
     callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void
-  ): this {
-    return this.on('commandMessage', callback)
+  ): void {
+    this.on('commandMessage', callback)
   }
 
   /**
    * Calls a callback when a message starting with a prefix but not matching a command is sent.
    * @param callback The function to call on the invalid command
    */
-  public onInvalidCommand(callback: (msg: CommandoMessage) => void): this {
-    return this.on('invalidCommand', callback)
+  public onInvalidCommand(callback: (msg: CommandoMessage) => void): void {
+    this.on('invalidCommand', callback)
   }
 
   /**
