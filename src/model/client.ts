@@ -305,8 +305,7 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
-      // tslint:disable-next-line: no-console
-      console.log((err as Error).message)
+      // swallow
     }
   }
 
