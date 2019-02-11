@@ -14,7 +14,7 @@ export const DefaultOptions = {
   totalShardCount: 1,
 
   http: {
-    api: 'https://discordapp.com/api',    
+    api: 'https://discordapp.com/api',
     cdn: 'https://cdn.discordapp.com',
     invite: 'https://discord.gg',
     version: 7
@@ -26,8 +26,8 @@ export const DefaultOptions = {
     properties: {
       $browser: 'discord.js',
       $device: 'discord.js',
-      $os: process.platform,
+      $os: process.platform
     },
-    version: 6,
+    version: 6
   }
 }
