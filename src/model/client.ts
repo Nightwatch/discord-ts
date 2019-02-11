@@ -31,9 +31,7 @@ export class CommandoClient extends Client {
    * Calls a callback when a message containing a command is processed.
    * @param callback The function to call on the message
    */
-  public onCommand(
-    callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void
-  ): void {
+  public onCommand(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void): void {
     this.on('command', callback)
   }
 
@@ -70,7 +68,9 @@ export class CommandoClient extends Client {
     if (typeof filePath === 'string') {
       return walk(filePath).then(files => {
         files.forEach(async (file: string) => {
-          await this.resolveCommand(`${filePath}${filePath.endsWith('\\') || filePath.endsWith('/') ? '' : '/'}${file}`)
+          await this.resolveCommand(
+            `${filePath}${filePath.endsWith('\\') || filePath.endsWith('/') ? '' : '/'}${file}`
+          )
         })
       })
     }
