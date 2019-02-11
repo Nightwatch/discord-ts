@@ -29,13 +29,24 @@ import { CommandoClient, CommandoMessage, CommandOptions } from '.'
  */
 export abstract class Command {
   /**
-   * Find a command by name.
+   * Find a command by name or alias.
    *
    * @param client - The parent client object
    * @param name - The name of the command, e.g. `echo`
    */
   public static find(client: CommandoClient, name: string): Command | undefined {
-    return client.commands.get(name)
+    let command = client.commands.get(name)
+
+    if (!command) {
+      for (const cmd of client.commands.values()) {
+        if (cmd.options.aliases && cmd.options.aliases.includes(name)) {
+          command = cmd
+          break
+        }
+      }
+    }
+
+    return command
   }
 
   /**

@@ -16,6 +16,11 @@ export interface Argument {
   key: string
 
   /**
+   * Whether or not the argument is optional. Cannot come before a required argument.
+   */
+  optional?: boolean
+
+  /**
    * The type of the argument.
    * Can be a single type, or an array of types.
    *

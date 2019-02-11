@@ -1,6 +1,7 @@
 import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
+import * as cmds from '../commands'
 import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
 
 /**
@@ -53,11 +54,50 @@ export class CommandoClient extends Client {
    * @param command - The command object
    */
   public registerCommand(command: Command): void {
+    let duplicate = false
+    let duplicateName = ''
+    
+    // this *really* makes sure that no commands/aliases with the same name are registered
     if (this.commands.has(command.options.name)) {
+      duplicate = true
+      duplicateName = command.options.name
+    } else {
+      for (const cmd of this.commands.values()) {
+        if (command.options.aliases && command.options.aliases.includes(cmd.options.name)) {
+          duplicate = true
+          duplicateName = command.options.name
+        } else if (cmd.options.aliases && cmd.options.aliases.includes(command.options.name)) {
+          duplicate = true
+          duplicateName = command.options.name
+        } else if (cmd.options.aliases && command.options.aliases) {
+          for (const a of command.options.aliases) {
+            duplicate = cmd.options.aliases.find(a1 => a1 === a) ? true : false
+
+            if (duplicate) {
+              duplicateName = a
+              break
+            }
+          }
+
+          if (!duplicate) {
+            for (const a of cmd.options.aliases) {
+              duplicate = command.options.aliases.find(a1 => a1 === a) ? true : false
+
+              if (duplicate) {
+                duplicateName = a
+                break
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (duplicate) {
       throw new Error(
         `Command '${
-          command.options.name
-        }' is already registered. Do you have two commands with the same name?`
+          duplicateName
+        }' is already registered. Do you have two commands with the same name/alias?`
       )
     }
 
@@ -92,6 +132,10 @@ export class CommandoClient extends Client {
         await this.resolveCommand(path.join(p, file))
       })
     })
+  }
+
+  public registerDefaultCommands(options: { help: boolean } = { help: true }): void {
+    if (options.help !== false) this.registerCommand(new cmds.HelpCommand(this))
   }
 
   /**
@@ -133,32 +177,6 @@ export class CommandoClient extends Client {
     }
 
     return convert(to)
-  }
-
-  /**
-   * Finds a command by its name or an alias of the command.
-   *
-   * @param name - The command name to search.
-   */
-  private getCommandByNameOrAlias(name: string): Command | undefined {
-    const commandByName: Command | undefined = Command.find(this, name)
-
-    if (commandByName) {
-      return commandByName
-    }
-
-    const iterator: IterableIterator<Command> = this.commands.values()
-
-    for (let i = 0; i < this.commands.size; i++) {
-      const commandByAlias = iterator.next().value
-      if (!commandByAlias.options.aliases) {
-        continue
-      }
-
-      if (commandByAlias.options.aliases.find(x => x === name)) {
-        return commandByAlias
-      }
-    }
   }
 
   /**
@@ -259,7 +277,9 @@ export class CommandoClient extends Client {
 
     let prefix: string | undefined
 
-    if (typeof this.options.commandPrefix === 'string') {
+    if (msg.channel.type === 'dm') {
+      prefix = ''
+    } else if (typeof this.options.commandPrefix === 'string') {
       if (!msg.content.startsWith(this.options.commandPrefix)) {
         return
       }
@@ -283,9 +303,9 @@ export class CommandoClient extends Client {
     const commandName = split[0]
     const args = split.slice(1)
 
-    const command = this.getCommandByNameOrAlias(commandName)
+    const command = Command.find(this, commandName)
 
-    if (!command || command.options.unknown) {
+    if (!command || command.options.unknown || (command.options.guildOnly && msg.guild)) {
       this.emit('invalidCommand', msg)
       
       if (this.unknownCommand) {
@@ -321,8 +341,9 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
-      // tslint:disable-next-line: no-console
-      console.log(err)
+      if (err.message.endsWith('Do you have two commands with the same name/alias?')) {
+        throw err
+      }
     }
   }
 
@@ -364,8 +385,10 @@ export class CommandoClient extends Client {
       return this.runCommand(msg)
     }
 
-    if (msg.command.options.args.length > args.length) {
-      await msg.reply(`Insufficient arguments. Expected ${msg.command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+    const required = msg.command.options.args.filter(arg => !arg.optional)
+
+    if (required.length > args.length) {
+      await msg.reply(`Insufficient arguments. Expected at least ${required.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
 
       return
     }

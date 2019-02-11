@@ -19,6 +19,16 @@ export interface CommandOptions {
   description: string
 
   /**
+   * Whether or not the command is only usable in guilds.
+   */
+  guildOnly?: boolean
+
+  /**
+   * Whether or not this command is hidden from the default help command.
+   */
+  hidden?: boolean
+
+  /**
    * The name of the command. What the user must type to run the command. Must be unique.
    */
   name: string
