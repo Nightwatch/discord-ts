@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "keywords": [],
-  "main": "dist/commando-lite.umd.js",
-  "module": "dist/commando-lite.es5.js",
+  "main": "dist/lib/commando-lite.js",
   "typings": "dist/types/commando-lite.d.ts",
   "files": [
     "dist"

@@ -1,32 +1,23 @@
-import { Message } from 'discord.js'
+import { DMChannel, GroupDMChannel, Message, Structures, TextChannel } from 'discord.js'
 import { CommandoClient } from '.'
 import { Command } from './command'
 
 /**
- *  Subclass of the Discord.js Message class.
- *
- * @todo
+ * Subclass of the Discord.js Message class.
  */
 export class CommandoMessage extends Message {
   /**
-   * The base client object.
-   */
-  public client: CommandoClient
-
-  /**
    * The command that was ran.
    */
-  public command: Command
+  public command: Command | undefined = undefined
 
-  /**
-   * The parent Discord.js Message object
-   */
-  public message: Message
-
-  public constructor(message: Message, command: Command) {
-    super(message.client, message, message.channel)
-    this.message = message
-    this.command = command
-    this.client = command.client
+  public constructor(
+    client: CommandoClient,
+    data: object,
+    channel: DMChannel | TextChannel | GroupDMChannel
+  ) {
+    super(client, data, channel)
   }
 }
+
+Structures.extend('Message', () => CommandoMessage)

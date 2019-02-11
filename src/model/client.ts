@@ -1,9 +1,7 @@
-import { Client, Guild, GuildMember, Message } from 'discord.js'
+import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { ArgumentType } from './argument-type'
-import { CommandoMessage } from './message'
-import { Command, CommandoClientOptions } from '.'
+import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
 
 /**
  * Extension of the Discord.js Client.
@@ -22,13 +20,29 @@ export class CommandoClient extends Client {
   public readonly options: CommandoClientOptions
 
   public constructor(options: CommandoClientOptions) {
-    super(options)
+    super(Util.mergeDefault(DefaultOptions, options))
 
     this.options = options
 
-    this.on('message', async (msg: Message) => {
-      await this.onMessage(msg)
-    })
+    this.on('message', async (msg: CommandoMessage) => this.onMessage(msg))
+  }
+
+  /**
+   * Calls a callback when a message containing a command is processed.
+   * @param callback The function to call on the message
+   */
+  public onCommand(
+    callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void
+  ): void {
+    this.on('command', callback)
+  }
+
+  /**
+   * Calls a callback when a message starting with a prefix but not matching a command is sent.
+   * @param callback The function to call on the invalid command
+   */
+  public onInvalidCommand(callback: (msg: CommandoMessage) => void): void {
+    this.on('invalidCommand', callback)
   }
 
   /**
@@ -56,7 +70,7 @@ export class CommandoClient extends Client {
     if (typeof filePath === 'string') {
       return walk(filePath).then(files => {
         files.forEach(async (file: string) => {
-          await this.resolveCommand(file)
+          await this.resolveCommand(`${filePath}${filePath.endsWith('\\') ? '' : '\\'}${file}`)
         })
       })
     }
@@ -64,7 +78,7 @@ export class CommandoClient extends Client {
     filePath.forEach(async (p: string) => {
       const files: string[] = await walk(p)
       files.forEach(async (file: string) => {
-        await this.resolveCommand(file)
+        await this.resolveCommand(`${p}${p.endsWith('\\') ? '' : '\\'}${file}`)
       })
     })
   }
@@ -173,14 +187,16 @@ export class CommandoClient extends Client {
       return undefined
     }
 
-    if (mention.startsWith('<@') && mention.endsWith('>')) {
-      mention = mention.slice(2, -1)
+    let id: string
 
-      if (mention.startsWith('!')) {
-        mention = mention.slice(1)
+    if (mention.startsWith('<@') && mention.endsWith('>')) {
+      id = mention.slice(2, -1)
+
+      if (id.startsWith('!')) {
+        id = mention.slice(1)
       }
 
-      return guild.members.get(mention)
+      return guild.members.get(id)
     }
   }
 
@@ -193,7 +209,8 @@ export class CommandoClient extends Client {
     const ownerDisplayString = `${owner.username}#${owner.discriminator}`
     await msg
       .reply(
-        `An error occurred during the execution of the \`${msg.command.options.name}\` command: ${
+        // tslint:disable-next-line: no-non-null-assertion
+        `An error occurred during the execution of the \`${msg.command!.options.name}\` command: ${
           err.message
         }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
       )
@@ -208,13 +225,13 @@ export class CommandoClient extends Client {
    * @param command - The command object.
    * @param args - The formatted argument string array.
    */
-  private mapArgsToObject(msg: Message, command: Command, args: string[]): object | undefined {
-    if (!command.options.args) {
+  private mapArgsToObject(msg: CommandoMessage, args: string[]): object | undefined {
+    if (!msg.command || !msg.command.options.args) {
       return undefined
     }
 
-    return command.options.args.reduce(
-      (p, c, i) => ({ [c.key]: this.convertArgToType(args[i], c.type, msg.guild) }),
+    return msg.command.options.args.reduce(
+      (_, c, i) => ({ [c.key]: this.convertArgToType(args[i], c.type, msg.guild) }),
       {}
     )
   }
@@ -222,18 +239,35 @@ export class CommandoClient extends Client {
   /**
    * Handles when a user sends a message.
    *
-   * @param msg - Message object
+   * @param msg - CommandoMessage object
    */
-  private async onMessage(msg: Message): Promise<void> {
+  private async onMessage(msg: CommandoMessage): Promise<void> {
     if (msg.author.bot) {
       return
     }
 
-    if (!msg.content.startsWith(this.options.commandPrefix)) {
-      return
+    let prefix: string | undefined
+
+    if (typeof this.options.commandPrefix === 'string') {
+      if (!msg.content.startsWith(this.options.commandPrefix)) {
+        return
+      }
+
+      prefix = this.options.commandPrefix
+    } else {
+      for (const pref of this.options.commandPrefix) {
+        if (msg.content.startsWith(pref)) {
+          prefix = pref
+          break
+        }
+      }
+
+      if (prefix === undefined) {
+        return
+      }
     }
 
-    const withoutPrefix = msg.content.slice(this.options.commandPrefix.length)
+    const withoutPrefix = msg.content.slice(prefix.length)
     const split = withoutPrefix.split(' ')
     const commandName = split[0]
     const args = split.slice(1)
@@ -241,19 +275,20 @@ export class CommandoClient extends Client {
     const command = this.getCommandByNameOrAlias(commandName)
 
     if (!command) {
-      // TODO: Handle non commands, optionally
+      this.emit('invalidCommand', msg)
+
       return
     }
 
-    if (command.options.args) {
-      const commandoMessageWithArgs = new CommandoMessage(msg, command)
+    this.emit('command', msg, command, prefix)
 
-      return this.runCommandWithArgs(commandoMessageWithArgs, command, args)
+    msg.command = command
+
+    if (command.options.args) {
+      return this.runCommandWithArgs(msg, args)
     }
 
-    const commandoMessage = new CommandoMessage(msg, command)
-
-    return this.runCommand(commandoMessage, command)
+    return this.runCommand(msg)
   }
 
   /**
@@ -270,8 +305,7 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
-      // tslint:disable-next-line: no-console
-      console.log((err as Error).message)
+      // swallow
     }
   }
 
@@ -282,14 +316,20 @@ export class CommandoClient extends Client {
    * @param command - The command object to be ran.
    * @param args - Command args.
    */
-  private async runCommand(msg: CommandoMessage, command: Command, args?: object): Promise<void> {
-    if (!command.hasPermission(msg)) {
-      await msg.reply(`You do not have permission to use the \`${command.options.name}\` command.`)
+  private async runCommand(msg: CommandoMessage, args?: object): Promise<void> {
+    if (!msg.command) {
+      return
+    }
+
+    if (!msg.command.hasPermission(msg)) {
+      await msg.reply(
+        `You do not have permission to use the \`${msg.command.options.name}\` command.`
+      )
 
       return
     }
 
-    return command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
+    return msg.command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
   }
 
   /**
@@ -298,32 +338,32 @@ export class CommandoClient extends Client {
    * @param command - The command object to be ran.
    * @param args - Command args.
    */
-  private async runCommandWithArgs(
-    msg: CommandoMessage,
-    command: Command,
-    args: string[]
-  ): Promise<void> {
-    if (!command.options.args) {
-      return this.runCommand(msg, command)
+  private async runCommandWithArgs(msg: CommandoMessage, args: string[]): Promise<void> {
+    if (!msg.command) {
+      return
     }
 
-    if (command.options.args.length > args.length) {
-      await msg.reply(`Insufficient arguments. Expected ${command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+    if (!msg.command.options.args) {
+      return this.runCommand(msg)
+    }
+
+    if (msg.command.options.args.length > args.length) {
+      await msg.reply(`Insufficient arguments. Expected ${msg.command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
 
       return
     }
 
-    const formattedArgs = this.getFormattedArgs(command, args)
+    const formattedArgs = this.getFormattedArgs(msg.command, args)
 
-    const argsValid = this.validateArgs(msg, command, formattedArgs)
+    const argsValid = this.validateArgs(msg, formattedArgs)
 
     if (!argsValid) {
       return
     }
 
-    const argsObject = this.mapArgsToObject(msg, command, formattedArgs)
+    const argsObject = this.mapArgsToObject(msg, formattedArgs)
 
-    return this.runCommand(msg, command, argsObject)
+    return this.runCommand(msg, argsObject)
   }
 
   /**
@@ -333,13 +373,17 @@ export class CommandoClient extends Client {
    * @param command - The command object.
    * @param args - The arguments provided by the user.
    */
-  private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {
+  private async validateArgs(msg: CommandoMessage, args: string[]): Promise<boolean> {
+    if (!msg.command) {
+      return false
+    }
+
     for (let i = 0; i < args.length; i++) {
-      if (!command.options.args) {
+      if (!msg.command.options.args) {
         continue
       }
 
-      const expectedType = command.options.args[i].type
+      const expectedType = msg.command.options.args[i].type
 
       if (Array.isArray(expectedType)) {
         let foundType = false
@@ -395,8 +439,9 @@ export class CommandoClient extends Client {
 /**
  * Gets all files in directory, recursively.
  */
-async function walk(dir: string, fileList: string[] = []): Promise<string[]> {
+async function walk(dir: string, fileListArg: string[] = []): Promise<string[]> {
   const files = await fs.readdir(dir)
+  let fileList = fileListArg
 
   for (const file of files) {
     const filepath = path.join(dir, file)
