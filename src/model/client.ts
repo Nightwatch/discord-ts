@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
+import { Client, Guild, GuildMember, Message, Util, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
@@ -12,7 +12,7 @@ export class CommandoClient extends Client {
   /**
    * Holds all of the registered commands.
    */
-  public commands: Map<string, Command> = new Map()
+  public commands: Collection<string, Command> = new Collection()
 
   /**
    * The ClientOptions which were passed in the constructor.
@@ -120,32 +120,6 @@ export class CommandoClient extends Client {
     }
 
     return convert(to)
-  }
-
-  /**
-   * Finds a command by its name or an alias of the command.
-   *
-   * @param name - The command name to search.
-   */
-  private getCommandByNameOrAlias(name: string): Command | undefined {
-    const commandByName: Command | undefined = Command.find(this, name)
-
-    if (commandByName) {
-      return commandByName
-    }
-
-    const iterator: IterableIterator<Command> = this.commands.values()
-
-    for (let i = 0; i < this.commands.size; i++) {
-      const commandByAlias = iterator.next().value
-      if (!commandByAlias.options.aliases) {
-        continue
-      }
-
-      if (commandByAlias.options.aliases.find(x => x === name)) {
-        return commandByAlias
-      }
-    }
   }
 
   /**
@@ -270,7 +244,7 @@ export class CommandoClient extends Client {
     const commandName = split[0]
     const args = split.slice(1)
 
-    const command = this.getCommandByNameOrAlias(commandName)
+    const command = Command.find(this, commandName)
 
     if (!command) {
       this.emit('invalidCommand', msg)
