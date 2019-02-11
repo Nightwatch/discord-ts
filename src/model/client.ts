@@ -1,4 +1,4 @@
-import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
+import { Client, Guild, GuildMember, Message, Util, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import * as cmds from '../commands'
@@ -13,7 +13,7 @@ export class CommandoClient extends Client {
   /**
    * Holds all of the registered commands.
    */
-  public commands: Map<string, Command> = new Map()
+  public commands: Collection<string, Command> = new Collection()
 
   /**
    * The ClientOptions which were passed in the constructor.

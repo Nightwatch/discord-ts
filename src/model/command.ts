@@ -35,18 +35,9 @@ export abstract class Command {
    * @param name - The name of the command, e.g. `echo`
    */
   public static find(client: CommandoClient, name: string): Command | undefined {
-    let command = client.commands.get(name)
-
-    if (!command) {
-      for (const cmd of client.commands.values()) {
-        if (cmd.options.aliases && cmd.options.aliases.includes(name)) {
-          command = cmd
-          break
-        }
-      }
-    }
-
-    return command
+    return client.commands.find(
+      x => x.options.name === name || (!!x.options.aliases && x.options.aliases.includes(name))
+    )
   }
 
   /**
