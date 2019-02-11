@@ -304,8 +304,9 @@ export class CommandoClient extends Client {
       const instance: Command = new ResolvableCommand(this)
 
       this.registerCommand(instance)
-    } catch {
-      // swallow
+    } catch (err) {
+      // tslint:disable-next-line: no-console
+      console.log((err as Error).message)
     }
   }
 
