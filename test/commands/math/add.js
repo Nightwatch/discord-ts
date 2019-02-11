@@ -1,4 +1,4 @@
-const commando = require('../../');
+const commando = require('../../../');
 
 module.exports = class AddNumbersCommand extends commando.Command {
 	constructor(client) {
@@ -13,7 +13,7 @@ module.exports = class AddNumbersCommand extends commando.Command {
 					type: 'string'
 				}
 			]
-		});
+		})
 	}
 
 	async run(msg, args) {

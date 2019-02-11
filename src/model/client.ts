@@ -1,6 +1,7 @@
 import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
+import * as os from 'os'
 import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
 
 /**
@@ -18,6 +19,11 @@ export class CommandoClient extends Client {
    * The ClientOptions which were passed in the constructor.
    */
   public readonly options: CommandoClientOptions
+
+  /**
+   * The command to run whenever an unknown command is ran.
+   */
+  public unknownCommand: Command | undefined
 
   public constructor(options: CommandoClientOptions) {
     super(Util.mergeDefault(DefaultOptions, options))
@@ -57,6 +63,14 @@ export class CommandoClient extends Client {
     }
 
     this.commands.set(command.options.name, command)
+
+    if (command.options.unknown) {
+      if (this.unknownCommand) {
+        throw new Error(`Command ${this.unknownCommand.options.name} is already the unknown command.`)
+      }
+
+      this.unknownCommand = command
+    }
   }
 
   /**
@@ -272,8 +286,13 @@ export class CommandoClient extends Client {
 
     const command = this.getCommandByNameOrAlias(commandName)
 
-    if (!command) {
+    if (!command || command.options.unknown) {
       this.emit('invalidCommand', msg)
+      
+      if (this.unknownCommand) {
+        msg.command = this.unknownCommand
+        this.runCommandWithArgs(msg, [ commandName ])
+      }
 
       return
     }
@@ -303,7 +322,8 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
-      // swallow
+      // tslint:disable-next-line: no-console
+      console.log(err)
     }
   }
 
@@ -437,16 +457,16 @@ export class CommandoClient extends Client {
 /**
  * Gets all files in directory, recursively.
  */
-async function walk(dir: string, fileListArg: string[] = []): Promise<string[]> {
+async function walk(dir: string): Promise<string[]> {
   const files = await fs.readdir(dir)
-  let fileList = fileListArg
+  const fileList: string[] = []
 
   for (const file of files) {
     const filepath = path.join(dir, file)
     const stat = await fs.stat(filepath)
 
     if (stat.isDirectory()) {
-      fileList = await walk(filepath, fileList)
+      fileList.push(...(await walk(filepath)).map(f => path.join(path.parse(filepath).base, f)))
     } else {
       fileList.push(file)
     }

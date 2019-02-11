@@ -22,4 +22,10 @@ export interface CommandOptions {
    * The name of the command. What the user must type to run the command. Must be unique.
    */
   name: string
+
+  /**
+   * Whether or not the command should be run whenever a user runs an unknown command.
+   * Only one command can have this property. It will not show up in the help command.
+   */
+  unknown?: boolean
 }
