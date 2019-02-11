@@ -18,6 +18,7 @@
       "severity": "warn"
     },
     "no-magic-numbers": false,
-    "only-arrow-functions": false
+    "only-arrow-functions": false,
+    "ordered-imports": false
   }
 }

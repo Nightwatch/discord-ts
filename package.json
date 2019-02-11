@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "description": "",
   "keywords": [],
-  "main": "dist/commando-lite.umd.js",
-  "module": "dist/commando-lite.es5.js",
+  "main": "dist/lib/commando-lite.js",
   "typings": "dist/types/commando-lite.d.ts",
   "files": [
     "dist"
@@ -21,8 +20,7 @@
   "scripts": {
     "lint": "tslint  --project . --format stylish --fix",
     "prebuild": "rimraf dist",
-    "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",
-    "start": "rollup -c rollup.config.ts -w",
+    "build": "tsc && typedoc --out docs --target es6 --theme minimal --mode file src",
     "precommit": "lint-staged"
   },
   "lint-staged": {
@@ -54,12 +52,6 @@
     "prompt": "^1.0.0",
     "replace-in-file": "^3.4.2",
     "rimraf": "^2.6.2",
-    "rollup": "^0.67.0",
-    "rollup-plugin-commonjs": "^9.1.8",
-    "rollup-plugin-json": "^3.1.0",
-    "rollup-plugin-node-resolve": "^3.4.0",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-typescript2": "^0.18.0",
     "shelljs": "^0.8.3",
     "ts-jest": "^23.10.2",
     "ts-node": "^7.0.1",
@@ -70,7 +62,6 @@
     "typescript": "^3.0.3"
   },
   "dependencies": {
-    "@babel/polyfill": "^7.2.5",
-    "discord.js": "https://github.com/discordjs/discord.js#3dff5058f0beae01cec0abe27e3a43c8fd7c60ce"
+    "discord.js": "discordjs/discord.js"
   }
 }
