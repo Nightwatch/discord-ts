@@ -56,7 +56,7 @@ export class CommandoClient extends Client {
   public registerCommand(command: Command): void {
     let duplicate = false
     let duplicateName = ''
-    
+
     // this *really* makes sure that no commands/aliases with the same name are registered
     if (this.commands.has(command.options.name)) {
       duplicate = true
@@ -95,9 +95,7 @@ export class CommandoClient extends Client {
 
     if (duplicate) {
       throw new Error(
-        `Command '${
-          duplicateName
-        }' is already registered. Do you have two commands with the same name/alias?`
+        `Command '${duplicateName}' is already registered. Do you have two commands with the same name/alias?`
       )
     }
 
@@ -105,7 +103,11 @@ export class CommandoClient extends Client {
 
     if (command.options.unknown) {
       if (this.unknownCommand) {
-        throw new Error(`Command ${this.unknownCommand.options.name} is already the unknown command, ${command.options.name} cannot also be it.`)
+        throw new Error(
+          `Command ${this.unknownCommand.options.name} is already the unknown command, ${
+            command.options.name
+          } cannot also be it.`
+        )
       }
 
       this.unknownCommand = command
@@ -134,8 +136,13 @@ export class CommandoClient extends Client {
     })
   }
 
-  public registerDefaultCommands(options: { help: boolean } = { help: true }): void {
-    if (options.help !== false) this.registerCommand(new cmds.HelpCommand(this))
+  /**
+   * Registers the built-in commands.
+   *
+   * @param options Allows you to disable certain default commands.
+   */
+  public registerDefaultCommands(options = { help: true }): void {
+    if (options.help) this.registerCommand(new cmds.HelpCommand(this))
   }
 
   /**
@@ -307,10 +314,10 @@ export class CommandoClient extends Client {
 
     if (!command || command.options.unknown || (command.options.guildOnly && msg.guild)) {
       this.emit('invalidCommand', msg)
-      
+
       if (this.unknownCommand) {
         msg.command = this.unknownCommand
-        this.runCommandWithArgs(msg, [ commandName ])
+        await this.runCommandWithArgs(msg, [commandName])
       }
 
       return
@@ -341,6 +348,7 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
+      // tslint:disable-next-line no-unsafe-any
       if (err.message.endsWith('Do you have two commands with the same name/alias?')) {
         throw err
       }
