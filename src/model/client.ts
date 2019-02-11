@@ -31,10 +31,10 @@ export class CommandoClient extends Client {
    * Calls a callback when a message containing a command is processed.
    * @param callback The function to call on the message
    */
-  public onCommandMessage(
+  public onCommand(
     callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void
   ): void {
-    this.on('commandMessage', callback)
+    this.on('command', callback)
   }
 
   /**
@@ -280,7 +280,7 @@ export class CommandoClient extends Client {
       return
     }
 
-    this.emit('commandMessage', msg, command, prefix)
+    this.emit('command', msg, command, prefix)
 
     msg.command = command
 
