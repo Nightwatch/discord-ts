@@ -263,8 +263,12 @@ export class CommandoClient extends Client {
    */
   private resolveCommand(filePath: string): void {
     try {
-      const command = require(filePath) as Command
-      this.registerCommand(command)
+      const ResolvableCommand = require(filePath)
+
+      // tslint:disable-next-line: no-unsafe-any
+      const instance: Command = new ResolvableCommand(this)
+
+      this.registerCommand(instance)
     } catch {
       // swallow
     }
