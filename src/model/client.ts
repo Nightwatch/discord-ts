@@ -1,7 +1,6 @@
 import { Client, Guild, GuildMember, Message, Util } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import * as os from 'os'
 import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
 
 /**
@@ -66,7 +65,7 @@ export class CommandoClient extends Client {
 
     if (command.options.unknown) {
       if (this.unknownCommand) {
-        throw new Error(`Command ${this.unknownCommand.options.name} is already the unknown command.`)
+        throw new Error(`Command ${this.unknownCommand.options.name} is already the unknown command, ${command.options.name} cannot also be it.`)
       }
 
       this.unknownCommand = command
