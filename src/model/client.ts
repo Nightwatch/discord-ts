@@ -58,7 +58,9 @@ export class CommandoClient extends Client {
 
     if (duplicate.duplicate) {
       throw new TypeError(
-        `Commando: Command '${duplicate.duplicateName}' is already registered. Do you have two commands with the same name/alias?`
+        `Commando: Command '${
+          duplicate.duplicateName
+        }' is already registered. Do you have two commands with the same name/alias?`
       )
     }
 
@@ -118,7 +120,18 @@ export class CommandoClient extends Client {
    * This *really* makes sure that no commands/aliases with the same name are registered
    * @param command The command to check against all other commands.
    */
-  private checkDuplicates(command: Command): { duplicate: boolean, duplicateName: string } {
+  private checkDuplicates(
+    command: Command
+  ): {
+    /**
+     * Whether or not there were any duplicates
+     */
+    duplicate: boolean
+    /**
+     * The name of the argument with a duplicate, if any.
+     */
+    duplicateName: string
+  } {
     let duplicate = false
     let duplicateName = ''
 
@@ -363,6 +376,7 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
+      // tslint:disable-next-line: no-unsafe-any
       if (err.message.startsWith('Commando: ')) {
         throw err
       }
@@ -441,7 +455,9 @@ export class CommandoClient extends Client {
         if (arg.optional) {
           optional = true
         } else if (optional) {
-          return `Required argument ${arg.key} of command ${command.options.name} is after an optional argument.`
+          return `Required argument ${arg.key} of command ${
+            command.options.name
+          } is after an optional argument.`
         }
 
         if (keys.includes(arg.key)) {
