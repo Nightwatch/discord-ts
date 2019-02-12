@@ -54,57 +54,26 @@ export class CommandoClient extends Client {
    * @param command - The command object
    */
   public registerCommand(command: Command): void {
-    let duplicate = false
-    let duplicateName = ''
+    const duplicate = this.checkDuplicates(command)
 
-    // this *really* makes sure that no commands/aliases with the same name are registered
-    if (this.commands.has(command.options.name)) {
-      duplicate = true
-      duplicateName = command.options.name
-    } else {
-      for (const cmd of this.commands.values()) {
-        if (command.options.aliases && command.options.aliases.includes(cmd.options.name)) {
-          duplicate = true
-          duplicateName = command.options.name
-        } else if (cmd.options.aliases && cmd.options.aliases.includes(command.options.name)) {
-          duplicate = true
-          duplicateName = command.options.name
-        } else if (cmd.options.aliases && command.options.aliases) {
-          for (const a of command.options.aliases) {
-            duplicate = cmd.options.aliases.find(a1 => a1 === a) ? true : false
-
-            if (duplicate) {
-              duplicateName = a
-              break
-            }
-          }
-
-          if (!duplicate) {
-            for (const a of cmd.options.aliases) {
-              duplicate = command.options.aliases.find(a1 => a1 === a) ? true : false
-
-              if (duplicate) {
-                duplicateName = a
-                break
-              }
-            }
-          }
-        }
-      }
+    if (duplicate.duplicate) {
+      throw new TypeError(
+        `Commando: Command '${duplicate.duplicateName}' is already registered. Do you have two commands with the same name/alias?`
+      )
     }
 
-    if (duplicate) {
-      throw new Error(
-        `Command '${duplicateName}' is already registered. Do you have two commands with the same name/alias?`
-      )
+    const argsTest = this.testArguments(command)
+
+    if (argsTest) {
+      throw new TypeError(`Commando: ${argsTest}`)
     }
 
     this.commands.set(command.options.name, command)
 
     if (command.options.unknown) {
       if (this.unknownCommand) {
-        throw new Error(
-          `Command ${this.unknownCommand.options.name} is already the unknown command, ${
+        throw new TypeError(
+          `Commando: Command ${this.unknownCommand.options.name} is already the unknown command, ${
             command.options.name
           } cannot also be it.`
         )
@@ -143,6 +112,52 @@ export class CommandoClient extends Client {
    */
   public registerDefaultCommands(options = { help: true }): void {
     if (options.help) this.registerCommand(new cmds.HelpCommand(this))
+  }
+
+  /**
+   * This *really* makes sure that no commands/aliases with the same name are registered
+   * @param command The command to check against all other commands.
+   */
+  private checkDuplicates(command: Command): { duplicate: boolean, duplicateName: string } {
+    let duplicate = false
+    let duplicateName = ''
+
+    if (this.commands.has(command.options.name)) {
+      duplicate = true
+      duplicateName = command.options.name
+    } else {
+      for (const cmd of this.commands.values()) {
+        if (command.options.aliases && command.options.aliases.includes(cmd.options.name)) {
+          duplicate = true
+          duplicateName = command.options.name
+        } else if (cmd.options.aliases && cmd.options.aliases.includes(command.options.name)) {
+          duplicate = true
+          duplicateName = command.options.name
+        } else if (cmd.options.aliases && command.options.aliases) {
+          for (const a of command.options.aliases) {
+            duplicate = cmd.options.aliases.find(a1 => a1 === a) ? true : false
+
+            if (duplicate) {
+              duplicateName = a
+              break
+            }
+          }
+
+          if (!duplicate) {
+            for (const a of cmd.options.aliases) {
+              duplicate = command.options.aliases.find(a1 => a1 === a) ? true : false
+
+              if (duplicate) {
+                duplicateName = a
+                break
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return { duplicate, duplicateName }
   }
 
   /**
@@ -348,8 +363,7 @@ export class CommandoClient extends Client {
 
       this.registerCommand(instance)
     } catch (err) {
-      // tslint:disable-next-line no-unsafe-any
-      if (err.message.endsWith('Do you have two commands with the same name/alias?')) {
+      if (err.message.startsWith('Commando: ')) {
         throw err
       }
     }
@@ -412,6 +426,33 @@ export class CommandoClient extends Client {
     const argsObject = this.mapArgsToObject(msg, formattedArgs)
 
     return this.runCommand(msg, argsObject)
+  }
+
+  /**
+   * Tests a command's arguments.
+   * @param command The command to test the arguments of.
+   */
+  private testArguments(command: Command): string | undefined {
+    if (command.options.args) {
+      const keys: string[] = []
+      let optional = false
+
+      for (const arg of command.options.args) {
+        if (arg.optional) {
+          optional = true
+        } else if (optional) {
+          return `Required argument ${arg.key} of command ${command.options.name} is after an optional argument.`
+        }
+
+        if (keys.includes(arg.key)) {
+          return `Argument key ${arg.key} is used at least twice in command ${command.options.name}`
+        }
+
+        keys.push(arg.key)
+      }
+    }
+
+    return undefined
   }
 
   /**
