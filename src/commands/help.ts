@@ -27,10 +27,8 @@ export class HelpCommand extends Command {
    *
    * @param msg The message sent by the user
    * @param args The arguments
-   * @param args.commandArg The command the user wants help with.
    */
-  // tslint:disable-next-line completed-docs
-  public async run(msg: CommandoMessage, args: { commandArg: string }): Promise<void> {
+  public async run(msg: CommandoMessage, args: HelpCommandArgument): Promise<void> {
     const prefix =
       typeof this.client.options.commandPrefix === 'string'
         ? this.client.options.commandPrefix
@@ -82,4 +80,11 @@ export class HelpCommand extends Command {
 
     await msg.author.send(helpMsg, { split: true })
   }
+}
+
+export interface HelpCommandArgument {
+  /**
+   * The command the user wants help with.
+   */
+  commandArg: string
 }
