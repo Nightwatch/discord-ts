@@ -36,7 +36,7 @@ export class HelpCommand extends Command {
 
     let embed = new MessageEmbed()
       .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-      .setColor('GREEN')
+      .setColor(this.client.options.color || 'GREEN')
       .setFooter(this.client.user.username, this.client.user.displayAvatarURL())
     const prefix =
       typeof this.client.options.commandPrefix === 'string'
@@ -45,24 +45,7 @@ export class HelpCommand extends Command {
     const cmd = Command.find(this.client, args.commandArg)
 
     if (cmd) {
-      const format = `\`${prefix}${cmd.options.name} ${
-        cmd.options.args
-          ? cmd.options.args.map(arg => (arg.optional ? `[${arg.key}]` : `<${arg.key}>`)).join(' ')
-          : ''
-      }\``
-
-      const aliases = cmd.options.aliases
-        ? cmd.options.aliases.map(a => `\`${a}\``).join(', ')
-        : 'None'
-
-      embed
-        .setTitle(`Command: ${cmd.options.name}`)
-        .addField('Format', format)
-        .addField('Aliases', aliases)
-
-      await msg.author.send({ embed, split: true })
-
-      return
+      return this.singleCommand(msg, embed, prefix, cmd)
     }
 
     const tag = this.client.user ? `@${this.client.user.tag}` : ''
@@ -83,7 +66,8 @@ export class HelpCommand extends Command {
       if (
         command.options.unknown ||
         command.options.hidden ||
-        (args.commandArg !== 'all' && !command.hasPermission(msg))
+        ((args.commandArg !== 'all' && !command.hasPermission(msg)) ||
+          (command.options.guildOnly && msg.guild))
       ) {
         continue
       }
@@ -92,7 +76,7 @@ export class HelpCommand extends Command {
       const addedLength = name.length + command.options.description.length
 
       if (embed.fields.length === 25 || length + addedLength > 6000) {
-        await msg.author.send({ embed, split: true })
+        await msg.author.send({ embed })
         embed = new MessageEmbed().setTitle('Command list')
       }
 
@@ -100,7 +84,43 @@ export class HelpCommand extends Command {
       length += addedLength
     }
 
-    await msg.author.send({ embed, split: true })
+    await msg.author.send({ embed })
+  }
+
+  /**
+   * Tells the user about a single command, rather than all of them.
+   * @param msg The message sent by the user.
+   * @param embed The embed to send with the message.
+   * @param prefix The prefix to use when creating a format for the command.
+   * @param command The command to tell the user about.
+   */
+  private async singleCommand(
+    msg: CommandoMessage,
+    embed: MessageEmbed,
+    prefix: string,
+    command: Command
+  ): Promise<void> {
+    const format = `\`${prefix}${command.options.name} ${
+      command.options.args
+        ? command.options.args
+            .map(arg => (arg.optional ? `[${arg.key}]` : `<${arg.key}>`))
+            .join(' ')
+        : ''
+    }\``
+
+    const aliases = command.options.aliases
+      ? command.options.aliases.map(a => `\`${a}\``).join(', ')
+      : 'None'
+
+    embed
+      .setTitle(`Command: ${command.options.name}`)
+      .addField('Description', command.options.description)
+      .addField('Format', format)
+      .addField('Aliases', aliases)
+
+    await msg.author.send({ embed })
+
+    return
   }
 }
 
