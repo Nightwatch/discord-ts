@@ -19,6 +19,7 @@
     },
     "no-magic-numbers": false,
     "only-arrow-functions": false,
-    "ordered-imports": false
+    "ordered-imports": false,
+    "curly": true
   }
 }
