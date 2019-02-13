@@ -116,7 +116,9 @@ export class CommandoClient extends Client {
    * @param options Allows you to disable certain default commands.
    */
   public registerDefaultCommands(options = { help: true }): void {
-    if (options.help) this.registerCommand(new HelpCommand(this))
+    if (options.help) {
+      this.registerCommand(new HelpCommand(this))
+    }
   }
 
   /**
