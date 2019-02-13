@@ -1,6 +1,11 @@
-import { ClientOptions } from 'discord.js'
+import { ClientOptions, ColorResolvable } from 'discord.js'
 
 export interface CommandoClientOptions extends ClientOptions {
+  /**
+   * The main color of your bot. Will be used in some built in commands.
+   */
+  color?: ColorResolvable
+
   /**
    * The prefix that all commands will use. If an array, there will be multiple prefixes.
    *

@@ -1,7 +1,15 @@
 import { Client, Guild, GuildMember, Message, Util, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
+import { HelpCommand } from '../commands'
+import {
+  ArgumentType,
+  Command,
+  CommandoClientOptions,
+  CommandoMessage,
+  DefaultOptions,
+  Event
+} from '.'
 
 /**
  * Extension of the Discord.js Client.
@@ -19,6 +27,11 @@ export class CommandoClient extends Client {
    */
   public readonly options: CommandoClientOptions
 
+  /**
+   * The command to run whenever an unknown command is ran.
+   */
+  public unknownCommand?: Command
+
   public constructor(options: CommandoClientOptions) {
     super(Util.mergeDefault(DefaultOptions, options))
 
@@ -32,7 +45,7 @@ export class CommandoClient extends Client {
    * @param callback The function to call on the message
    */
   public onCommand(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void): void {
-    this.on('command', callback)
+    this.on(Event.COMMAND_RUN, callback)
   }
 
   /**
@@ -40,7 +53,7 @@ export class CommandoClient extends Client {
    * @param callback The function to call on the invalid command
    */
   public onInvalidCommand(callback: (msg: CommandoMessage) => void): void {
-    this.on('invalidCommand', callback)
+    this.on(Event.INVALID_COMMAND, callback)
   }
 
   /**
@@ -48,15 +61,31 @@ export class CommandoClient extends Client {
    * @param command - The command object
    */
   public registerCommand(command: Command): void {
-    if (this.commands.has(command.options.name)) {
-      throw new Error(
-        `Command '${
-          command.options.name
-        }' is already registered. Do you have two commands with the same name?`
+    const duplicate = this.findDuplicate(command)
+
+    if (duplicate) {
+      throw new TypeError(
+        `Unable to register command '${command.options.name}'. I've already registered a command '${
+          duplicate.options.name
+        }' which either has the same name or shares an alias.`
       )
     }
 
+    this.validateUnregisteredCommandArguments(command)
+
     this.commands.set(command.options.name, command)
+
+    if (command.options.unknown) {
+      if (this.unknownCommand) {
+        throw new TypeError(
+          `Command ${this.unknownCommand.options.name} is already the unknown command, ${
+            command.options.name
+          } cannot also be it.`
+        )
+      }
+
+      this.unknownCommand = command
+    }
   }
 
   /**
@@ -79,6 +108,17 @@ export class CommandoClient extends Client {
         await this.resolveCommand(path.join(p, file))
       })
     })
+  }
+
+  /**
+   * Registers the built-in commands.
+   *
+   * @param options Allows you to disable certain default commands.
+   */
+  public registerDefaultCommands(options = { help: true }): void {
+    if (options.help) {
+      this.registerCommand(new HelpCommand(this))
+    }
   }
 
   /**
@@ -120,6 +160,30 @@ export class CommandoClient extends Client {
     }
 
     return convert(to)
+  }
+
+  /**
+   * This *really* makes sure that no commands/aliases with the same name are registered
+   * @param command The command to check against all other commands.
+   */
+  private findDuplicate(command: Command): Command | void {
+    const commandSameName = Command.find(this, command.options.name)
+
+    if (commandSameName) {
+      return commandSameName
+    }
+
+    if (!command.options.aliases) {
+      return undefined
+    }
+
+    for (const alias of command.options.aliases) {
+      const commandSameAlias = Command.find(this, alias)
+
+      if (commandSameAlias) {
+        return commandSameAlias
+      }
+    }
   }
 
   /**
@@ -220,7 +284,9 @@ export class CommandoClient extends Client {
 
     let prefix: string | undefined
 
-    if (typeof this.options.commandPrefix === 'string') {
+    if (msg.channel.type === 'dm') {
+      prefix = ''
+    } else if (typeof this.options.commandPrefix === 'string') {
       if (!msg.content.startsWith(this.options.commandPrefix)) {
         return
       }
@@ -246,13 +312,18 @@ export class CommandoClient extends Client {
 
     const command = Command.find(this, commandName)
 
-    if (!command) {
-      this.emit('invalidCommand', msg)
+    if (!command || command.options.unknown || (command.options.guildOnly && msg.guild)) {
+      this.emit(Event.INVALID_COMMAND, msg)
+
+      if (this.unknownCommand) {
+        msg.command = this.unknownCommand
+        await this.runCommandWithArgs(msg, [commandName])
+      }
 
       return
     }
 
-    this.emit('command', msg, command, prefix)
+    this.emit(Event.COMMAND_RUN, msg, command, prefix)
 
     msg.command = command
 
@@ -269,16 +340,22 @@ export class CommandoClient extends Client {
    * @param filePath - Absolute path of command file.
    */
   private async resolveCommand(filePath: string): Promise<void> {
+    let ResolvableCommand
+
     try {
-      const ResolvableCommand = await import(filePath)
-
-      // tslint:disable-next-line: no-unsafe-any
-      const instance: Command = new ResolvableCommand(this)
-
-      this.registerCommand(instance)
+      ResolvableCommand = await import(filePath)
     } catch (err) {
       // swallow
     }
+
+    if (!ResolvableCommand) {
+      return
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    const instance: Command = new ResolvableCommand(this)
+
+    this.registerCommand(instance)
   }
 
   /**
@@ -319,8 +396,10 @@ export class CommandoClient extends Client {
       return this.runCommand(msg)
     }
 
-    if (msg.command.options.args.length > args.length) {
-      await msg.reply(`Insufficient arguments. Expected ${msg.command.options.args.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
+    const required = msg.command.options.args.filter(arg => !arg.optional)
+
+    if (required.length > args.length) {
+      await msg.reply(`Insufficient arguments. Expected at least ${required.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
 
       return
     }
@@ -405,22 +484,53 @@ export class CommandoClient extends Client {
         return true
     }
   }
+
+  /**
+   * Tests a command's arguments for duplicate keys and for optional arguments before required ones.
+   * @param command The command to test the arguments of.
+   */
+  private validateUnregisteredCommandArguments(command: Command): void {
+    if (command.options.args) {
+      const keys: string[] = []
+      let optional = false
+
+      for (const arg of command.options.args) {
+        if (arg.optional) {
+          optional = true
+        } else if (optional) {
+          throw new TypeError(
+            `Required argument ${arg.key} of command ${
+              command.options.name
+            } is after an optional argument.`
+          )
+        }
+
+        if (keys.includes(arg.key)) {
+          throw new TypeError(
+            `Argument key ${arg.key} is used at least twice in command ${command.options.name}`
+          )
+        }
+
+        keys.push(arg.key)
+      }
+    }
+  }
 }
 
 // source: https://gist.github.com/kethinov/6658166#gistcomment-2733303
 /**
  * Gets all files in directory, recursively.
  */
-async function walk(dir: string, fileListArg: string[] = []): Promise<string[]> {
+async function walk(dir: string): Promise<string[]> {
   const files = await fs.readdir(dir)
-  let fileList = fileListArg
+  const fileList: string[] = []
 
   for (const file of files) {
     const filepath = path.join(dir, file)
     const stat = await fs.stat(filepath)
 
     if (stat.isDirectory()) {
-      fileList = await walk(filepath, fileList)
+      fileList.push(...(await walk(filepath)).map(f => path.join(path.parse(filepath).base, f)))
     } else {
       fileList.push(file)
     }
