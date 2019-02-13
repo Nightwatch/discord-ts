@@ -1,8 +1,8 @@
-const commando = require('../../');
+const commando = require('../../')
 
 module.exports = class UnknownCommand extends commando.Command {
-	constructor(client) {
-		super(client, {
+  constructor(client) {
+    super(client, {
       name: 'unknown',
       description: 'Acts as a response to unknown commands.',
       unknown: true,
@@ -13,10 +13,10 @@ module.exports = class UnknownCommand extends commando.Command {
           type: 'string'
         }
       ]
-		})
-	}
+    })
+  }
 
-	async run(msg, { cmd }) {
+  async run(msg, { cmd }) {
     return msg.reply(`Unknown command \`${cmd}\`.`)
-	}
+  }
 }

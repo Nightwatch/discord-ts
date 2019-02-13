@@ -1,22 +1,22 @@
-const commando = require('../../../');
+const commando = require('../../../')
 
 module.exports = class AddNumbersCommand extends commando.Command {
-	constructor(client) {
-		super(client, {
-			name: 'add-numbers',
-			aliases: ['add', 'add-nums'],
-			description: 'Adds numbers together.',
+  constructor(client) {
+    super(client, {
+      name: 'add-numbers',
+      aliases: ['add', 'add-nums'],
+      description: 'Adds numbers together.',
 
-			args: [
-				{
-					key: 'numbers',
-					type: 'string'
-				}
-			]
-		})
-	}
+      args: [
+        {
+          key: 'numbers',
+          type: 'string'
+        }
+      ]
+    })
+  }
 
-	async run(msg, args) {
+  async run(msg, args) {
     let total = 0
     let nums = args.numbers.split(' ')
 
@@ -31,5 +31,5 @@ module.exports = class AddNumbersCommand extends commando.Command {
     }
 
     return msg.reply(`${nums.join(' + ')} = **${total}**`)
-	}
+  }
 }

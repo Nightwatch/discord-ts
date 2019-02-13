@@ -2,7 +2,14 @@ import { Client, Guild, GuildMember, Message, Util, Collection } from 'discord.j
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import * as cmds from '../commands'
-import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, DefaultOptions } from '.'
+import {
+  ArgumentType,
+  Command,
+  CommandoClientOptions,
+  CommandoMessage,
+  DefaultOptions,
+  Event
+} from '.'
 
 /**
  * Extension of the Discord.js Client.
@@ -23,7 +30,7 @@ export class CommandoClient extends Client {
   /**
    * The command to run whenever an unknown command is ran.
    */
-  public unknownCommand: Command | undefined
+  public unknownCommand?: Command
 
   public constructor(options: CommandoClientOptions) {
     super(Util.mergeDefault(DefaultOptions, options))
@@ -38,7 +45,7 @@ export class CommandoClient extends Client {
    * @param callback The function to call on the message
    */
   public onCommand(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void): void {
-    this.on('command', callback)
+    this.on(Event.COMMAND_RUN, callback)
   }
 
   /**
@@ -46,7 +53,7 @@ export class CommandoClient extends Client {
    * @param callback The function to call on the invalid command
    */
   public onInvalidCommand(callback: (msg: CommandoMessage) => void): void {
-    this.on('invalidCommand', callback)
+    this.on(Event.INVALID_COMMAND, callback)
   }
 
   /**
@@ -54,28 +61,24 @@ export class CommandoClient extends Client {
    * @param command - The command object
    */
   public registerCommand(command: Command): void {
-    const duplicate = this.checkDuplicates(command)
+    const duplicate = this.findDuplicate(command)
 
-    if (duplicate.duplicate) {
+    if (duplicate) {
       throw new TypeError(
-        `Commando: Command '${
-          duplicate.duplicateName
+        `Command '${
+          duplicate.options.name
         }' is already registered. Do you have two commands with the same name/alias?`
       )
     }
 
-    const argsTest = this.testArguments(command)
-
-    if (argsTest) {
-      throw new TypeError(`Commando: ${argsTest}`)
-    }
+    this.validateUnregisteredCommandArguments(command)
 
     this.commands.set(command.options.name, command)
 
     if (command.options.unknown) {
       if (this.unknownCommand) {
         throw new TypeError(
-          `Commando: Command ${this.unknownCommand.options.name} is already the unknown command, ${
+          `Command ${this.unknownCommand.options.name} is already the unknown command, ${
             command.options.name
           } cannot also be it.`
         )
@@ -117,63 +120,6 @@ export class CommandoClient extends Client {
   }
 
   /**
-   * This *really* makes sure that no commands/aliases with the same name are registered
-   * @param command The command to check against all other commands.
-   */
-  private checkDuplicates(
-    command: Command
-  ): {
-    /**
-     * Whether or not there were any duplicates
-     */
-    duplicate: boolean
-    /**
-     * The name of the argument with a duplicate, if any.
-     */
-    duplicateName: string
-  } {
-    let duplicate = false
-    let duplicateName = ''
-
-    if (this.commands.has(command.options.name)) {
-      duplicate = true
-      duplicateName = command.options.name
-    } else {
-      for (const cmd of this.commands.values()) {
-        if (command.options.aliases && command.options.aliases.includes(cmd.options.name)) {
-          duplicate = true
-          duplicateName = command.options.name
-        } else if (cmd.options.aliases && cmd.options.aliases.includes(command.options.name)) {
-          duplicate = true
-          duplicateName = command.options.name
-        } else if (cmd.options.aliases && command.options.aliases) {
-          for (const a of command.options.aliases) {
-            duplicate = cmd.options.aliases.find(a1 => a1 === a) ? true : false
-
-            if (duplicate) {
-              duplicateName = a
-              break
-            }
-          }
-
-          if (!duplicate) {
-            for (const a of cmd.options.aliases) {
-              duplicate = command.options.aliases.find(a1 => a1 === a) ? true : false
-
-              if (duplicate) {
-                duplicateName = a
-                break
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return { duplicate, duplicateName }
-  }
-
-  /**
    * Converts a string to a given argument type
    * @param from - The string value given by the user.
    * @param to - The expected type.
@@ -212,6 +158,30 @@ export class CommandoClient extends Client {
     }
 
     return convert(to)
+  }
+
+  /**
+   * This *really* makes sure that no commands/aliases with the same name are registered
+   * @param command The command to check against all other commands.
+   */
+  private findDuplicate(command: Command): Command | void {
+    const commandSameName = Command.find(this, command.options.name)
+
+    if (commandSameName) {
+      return commandSameName
+    }
+
+    if (!command.options.aliases) {
+      return undefined
+    }
+
+    for (const alias of command.options.aliases) {
+      const commandSameAlias = Command.find(this, alias)
+
+      if (commandSameAlias) {
+        return commandSameAlias
+      }
+    }
   }
 
   /**
@@ -341,7 +311,7 @@ export class CommandoClient extends Client {
     const command = Command.find(this, commandName)
 
     if (!command || command.options.unknown || (command.options.guildOnly && msg.guild)) {
-      this.emit('invalidCommand', msg)
+      this.emit(Event.INVALID_COMMAND, msg)
 
       if (this.unknownCommand) {
         msg.command = this.unknownCommand
@@ -351,7 +321,7 @@ export class CommandoClient extends Client {
       return
     }
 
-    this.emit('command', msg, command, prefix)
+    this.emit(Event.COMMAND_RUN, msg, command, prefix)
 
     msg.command = command
 
@@ -368,19 +338,22 @@ export class CommandoClient extends Client {
    * @param filePath - Absolute path of command file.
    */
   private async resolveCommand(filePath: string): Promise<void> {
+    let ResolvableCommand
+
     try {
-      const ResolvableCommand = await import(filePath)
-
-      // tslint:disable-next-line: no-unsafe-any
-      const instance: Command = new ResolvableCommand(this)
-
-      this.registerCommand(instance)
+      ResolvableCommand = await import(filePath)
     } catch (err) {
-      // tslint:disable-next-line: no-unsafe-any
-      if (err.message.startsWith('Commando: ')) {
-        throw err
-      }
+      // swallow
     }
+
+    if (!ResolvableCommand) {
+      return
+    }
+
+    // tslint:disable-next-line: no-unsafe-any
+    const instance: Command = new ResolvableCommand(this)
+
+    this.registerCommand(instance)
   }
 
   /**
@@ -440,35 +413,6 @@ export class CommandoClient extends Client {
     const argsObject = this.mapArgsToObject(msg, formattedArgs)
 
     return this.runCommand(msg, argsObject)
-  }
-
-  /**
-   * Tests a command's arguments.
-   * @param command The command to test the arguments of.
-   */
-  private testArguments(command: Command): string | undefined {
-    if (command.options.args) {
-      const keys: string[] = []
-      let optional = false
-
-      for (const arg of command.options.args) {
-        if (arg.optional) {
-          optional = true
-        } else if (optional) {
-          return `Required argument ${arg.key} of command ${
-            command.options.name
-          } is after an optional argument.`
-        }
-
-        if (keys.includes(arg.key)) {
-          return `Argument key ${arg.key} is used at least twice in command ${command.options.name}`
-        }
-
-        keys.push(arg.key)
-      }
-    }
-
-    return undefined
   }
 
   /**
@@ -536,6 +480,37 @@ export class CommandoClient extends Client {
         return !!this.getMemberFromMention(msg.guild, value)
       default:
         return true
+    }
+  }
+
+  /**
+   * Tests a command's arguments for duplicate keys and for optional arguments before required ones.
+   * @param command The command to test the arguments of.
+   */
+  private validateUnregisteredCommandArguments(command: Command): void {
+    if (command.options.args) {
+      const keys: string[] = []
+      let optional = false
+
+      for (const arg of command.options.args) {
+        if (arg.optional) {
+          optional = true
+        } else if (optional) {
+          throw new TypeError(
+            `Required argument ${arg.key} of command ${
+              command.options.name
+            } is after an optional argument.`
+          )
+        }
+
+        if (keys.includes(arg.key)) {
+          throw new TypeError(
+            `Argument key ${arg.key} is used at least twice in command ${command.options.name}`
+          )
+        }
+
+        keys.push(arg.key)
+      }
     }
   }
 }

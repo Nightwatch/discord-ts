@@ -1,6 +1,7 @@
 import { Command } from '../model/command'
 import { CommandoMessage } from '../model/message'
 import { CommandoClient } from '../model/client'
+import { MessageEmbed } from 'discord.js'
 
 /**
  * The default help command.
@@ -9,7 +10,7 @@ export class HelpCommand extends Command {
   public constructor(client: CommandoClient) {
     super(client, {
       aliases: ['h', 'commands', 'cmds'],
-      description: 'This command.',
+      description: 'Shows the names and descriptions of all commands, and for certain commands.',
       name: 'help',
 
       args: [
@@ -29,56 +30,77 @@ export class HelpCommand extends Command {
    * @param args The arguments
    */
   public async run(msg: CommandoMessage, args: HelpCommandArgument): Promise<void> {
+    if (!this.client.user) {
+      return
+    }
+
+    let embed = new MessageEmbed()
+      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
+      .setColor('GREEN')
+      .setFooter(this.client.user.username, this.client.user.displayAvatarURL())
     const prefix =
       typeof this.client.options.commandPrefix === 'string'
         ? this.client.options.commandPrefix
         : this.client.options.commandPrefix[0]
-    const cmdArg = Command.find(this.client, args.commandArg)
+    const cmd = Command.find(this.client, args.commandArg)
 
-    if (cmdArg) {
-      let help = `__Command **${cmdArg.options.name}**__: ${cmdArg.options.description}${
-        cmdArg.options.guildOnly ? ` (Usable only in servers)` : ''
-      }\n`
-      help += `**Format:** \`${prefix}${cmdArg.options.name} ${
-        cmdArg.options.args
-          ? cmdArg.options.args
-              .map(arg => (arg.optional ? `[${arg.key}]` : `<${arg.key}>`))
-              .join(' ')
+    if (cmd) {
+      const format = `\`${prefix}${cmd.options.name} ${
+        cmd.options.args
+          ? cmd.options.args.map(arg => (arg.optional ? `[${arg.key}]` : `<${arg.key}>`)).join(' ')
           : ''
-      }\`\n`
-      help += `**Aliases:** ${
-        cmdArg.options.aliases ? cmdArg.options.aliases.map(a => `\`${a}\``).join(', ') : 'None'
-      }`
+      }\``
 
-      await msg.author.send(help, { split: true })
+      const aliases = cmd.options.aliases
+        ? cmd.options.aliases.map(a => `\`${a}\``).join(', ')
+        : 'None'
+
+      embed
+        .setTitle(`Command: ${cmd.options.name}`)
+        .addField('Format', format)
+        .addField('Aliases', aliases)
+
+      await msg.author.send({ embed, split: true })
 
       return
     }
 
     const tag = this.client.user ? `@${this.client.user.tag}` : ''
     const guild = msg.guild ? msg.guild.name : ''
-    let helpMsg = `To run a command in ${guild || 'a server'}, use \`${prefix}command\`${
+    let description = `Use \`${prefix}command\`${
       tag ? ` or \`${tag} command\`` : ''
-    }. For example, \`${prefix}help\`${tag ? ` or \`${tag} help\`` : ''}.\n`
-    helpMsg += `To run a command in this DM, simply use \`command\` with no prefix.\n\n`
-    helpMsg += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
-    helpMsg += `__**Available commands${guild ? ` in ${guild}` : ''}**__\n\n`
+    } to run a command. For example, \`${prefix}help\`${tag ? ` or \`${tag} help\`` : ''}.\n`
+    description += `To run a command in DMs with me, use \`command\` with no prefix.\n\n`
+    description += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
+    description += `__**Available commands${guild ? ` in ${guild}` : ''}**__\n\n`
 
-    for (const command of this.client.commands) {
-      const cmd = command[1]
+    embed.setTitle('Command List').setDescription(description)
 
+    // tslint:disable-next-line no-non-null-assertion
+    let length = embed.title.length + embed.footer.text!.length + embed.description.length
+
+    for (const command of this.client.commands.values()) {
       if (
-        cmd.options.unknown ||
-        cmd.options.hidden ||
-        (args.commandArg !== 'all' && !cmd.hasPermission(msg))
+        command.options.unknown ||
+        command.options.hidden ||
+        (args.commandArg !== 'all' && !command.hasPermission(msg))
       ) {
         continue
       }
 
-      helpMsg += `**${cmd.options.name}:** ${cmd.options.description}\n`
+      const name = `${command.options.name}${command.options.guildOnly ? '(Guild only)' : ''}`
+      const addedLength = name.length + command.options.description.length
+
+      if (embed.fields.length === 25 || length + addedLength > 6000) {
+        await msg.author.send({ embed, split: true })
+        embed = new MessageEmbed().setTitle('Command list')
+      }
+
+      embed.addField(name, command.options.description)
+      length += addedLength
     }
 
-    await msg.author.send(helpMsg, { split: true })
+    await msg.author.send({ embed, split: true })
   }
 }
 
