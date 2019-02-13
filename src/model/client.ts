@@ -1,7 +1,7 @@
 import { Client, Guild, GuildMember, Message, Util, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import * as cmds from '../commands'
+import { HelpCommand } from '../commands'
 import {
   ArgumentType,
   Command,
@@ -65,9 +65,9 @@ export class CommandoClient extends Client {
 
     if (duplicate) {
       throw new TypeError(
-        `Command '${
+        `Unable to register command '${command.options.name}'. I've already registered a command '${
           duplicate.options.name
-        }' is already registered. Do you have two commands with the same name/alias?`
+        }' which either has the same name or shares an alias.`
       )
     }
 
@@ -116,7 +116,7 @@ export class CommandoClient extends Client {
    * @param options Allows you to disable certain default commands.
    */
   public registerDefaultCommands(options = { help: true }): void {
-    if (options.help) this.registerCommand(new cmds.HelpCommand(this))
+    if (options.help) this.registerCommand(new HelpCommand(this))
   }
 
   /**

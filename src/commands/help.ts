@@ -45,7 +45,7 @@ export class HelpCommand extends Command {
     const cmd = Command.find(this.client, args.commandArg)
 
     if (cmd) {
-      return this.singleCommand(msg, embed, prefix, cmd)
+      return this.showHelpForCommand(msg, embed, prefix, cmd)
     }
 
     const tag = this.client.user ? `@${this.client.user.tag}` : ''
@@ -94,7 +94,7 @@ export class HelpCommand extends Command {
    * @param prefix The prefix to use when creating a format for the command.
    * @param command The command to tell the user about.
    */
-  private async singleCommand(
+  private async showHelpForCommand(
     msg: CommandoMessage,
     embed: MessageEmbed,
     prefix: string,
@@ -119,8 +119,6 @@ export class HelpCommand extends Command {
       .addField('Aliases', aliases)
 
     await msg.author.send({ embed })
-
-    return
   }
 }
 
