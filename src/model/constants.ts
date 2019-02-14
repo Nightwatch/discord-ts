@@ -31,3 +31,8 @@ export const DefaultOptions = {
     version: 6
   }
 }
+
+export enum Event {
+  INVALID_COMMAND = 'invalidCommand',
+  COMMAND_RUN = 'command'
+}

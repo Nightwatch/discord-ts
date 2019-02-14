@@ -20,6 +20,7 @@ client
     console.warn('Reconnecting...')
   })
 
+client.registerDefaultCommands()
 client.registerCommandsIn(path.join(__dirname, 'commands')).then(() => {
   client.login(token).catch(console.error)
 })
