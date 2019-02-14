@@ -2,7 +2,8 @@
   "extends": [
     "tslint:all",
     "tslint-config-standard",
-    "tslint-config-prettier"
+    "tslint-config-prettier",
+    "tslint-sonarts"
   ],
   "rules": {
     "file-name-casing": [true, "kebab-case"],

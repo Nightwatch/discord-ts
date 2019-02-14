@@ -846,7 +846,6 @@ discord.js@discordjs/discord.js:
     node-fetch "^2.1.2"
     pako "^1.0.0"
     prism-media amishshah/prism-media
-    setimmediate "^1.0.5"
     tweetnacl "^1.0.0"
     ws "^6.0.0"
 
@@ -1224,6 +1223,11 @@ i@0.3.x:
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/i/-/i-0.3.6.tgz#d96c92732076f072711b6b10fd7d4f65ad8ee23d"
   integrity sha1-2WyScyB28HJxG2sQ/X1PZa2O4j0=
+
+immutable@^3.8.2:
+  version "3.8.2"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
+  integrity sha1-wkOZUUVbs5kT2vKBN28VMOEErfM=
 
 import-fresh@^2.0.0:
   version "2.0.0"
@@ -2864,6 +2868,13 @@ tslint-eslint-rules@^5.3.1:
     doctrine "0.7.2"
     tslib "1.9.0"
     tsutils "^3.0.0"
+
+tslint-sonarts@^1.9.0:
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/tslint-sonarts/-/tslint-sonarts-1.9.0.tgz#feb593e92db328c0328b430b838adbe65d504de9"
+  integrity sha512-CJWt+IiYI8qggb2O/JPkS6CkC5DY1IcqRsm9EHJ+AxoWK70lvtP7jguochyNDMP2vIz/giGdWCfEM39x/I/Vnw==
+  dependencies:
+    immutable "^3.8.2"
 
 tslint@^5.11.0:
   version "5.12.1"
