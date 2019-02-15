@@ -1,15 +1,27 @@
-# Commando Lite
+# Discord.ts
 
-Micro Discord.js command framework based on Discord.js Commando, but without the bloat.
+Superset of discord.js with a built-in command framework.
 
-- Installation
-- Usage
+## Installation
 
-  - Creating a bot
-  - Creating a command (CommandoClient)
+Prerequisites
 
-    - Hello world command
-    - Adding arguments
-    - Command permissions (hasPermission)
+- Node.js >= v10
 
-  - Registering the commands (CommandoClient##registerCommandsIn)
+You can install Discord.ts with your favorite package manager:
+
+- `npm install --save discord.ts`
+
+## Usage
+
+### Creating a bot
+
+### Creating a command (Client)
+
+#### Hello world command
+
+#### Adding arguments
+
+#### Command permissions (hasPermission)
+
+### Registering the commands (Client##registerCommandsIn)
