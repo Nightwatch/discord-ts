@@ -15,6 +15,7 @@ import { CommandoClient, CommandoMessage, CommandOptions } from '.'
  *       args: [
  *         {
  *           key: 'phrase',
+ *           phrase: 'What should I echo?',
  *           type: 'string'
  *         }
  *       ]
