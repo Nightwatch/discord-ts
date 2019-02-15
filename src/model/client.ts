@@ -42,6 +42,7 @@ export class CommandoClient extends Client {
 
   /**
    * Calls a callback when a message containing a command is processed.
+   *
    * @param callback The function to call on the message
    */
   public onCommand(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void): void {
@@ -50,6 +51,7 @@ export class CommandoClient extends Client {
 
   /**
    * Calls a callback when a message starting with a prefix but not matching a command is sent.
+   *
    * @param callback The function to call on the invalid command
    */
   public onInvalidCommand(callback: (msg: CommandoMessage) => void): void {
@@ -58,6 +60,7 @@ export class CommandoClient extends Client {
 
   /**
    * Register a command object
+   *
    * @param command - The command object
    */
   public registerCommand(command: Command): void {
@@ -122,7 +125,8 @@ export class CommandoClient extends Client {
   }
 
   /**
-   * Converts a string to a given argument type
+   * Converts a string to a given argument type.
+   *
    * @param from - The string value given by the user.
    * @param to - The expected type.
    * @param guild - The guild the command was from.
@@ -163,7 +167,8 @@ export class CommandoClient extends Client {
   }
 
   /**
-   * This *really* makes sure that no commands/aliases with the same name are registered
+   * This ensures no commands/aliases with the same name are registered.
+   *
    * @param command The command to check against all other commands.
    */
   private findDuplicate(command: Command): Command | void {
@@ -298,6 +303,7 @@ export class CommandoClient extends Client {
 
   /**
    * Helper method to check if message begins with a command prefix
+   *
    * @param msg - The CommandoMessage with the user's message
    */
   private messageStartsWithPrefix(msg: CommandoMessage): boolean {
@@ -337,6 +343,7 @@ export class CommandoClient extends Client {
 
   /**
    * Tries to get a command from the user's message and execute it
+   *
    * @param msg - The CommandoMessage representing the user's message
    */
   private async parseMessageAsCommand(msg: CommandoMessage): Promise<void> {
@@ -419,6 +426,7 @@ export class CommandoClient extends Client {
 
   /**
    * Helper method to validate args and run command with args.
+   *
    * @param msg - The message object.
    * @param command - The command object to be ran.
    * @param args - Command args.
@@ -494,6 +502,7 @@ export class CommandoClient extends Client {
 
   /**
    * Validates a value against a single type
+   *
    * @param msg - The message object.
    * @param expected - The expected type.
    * @param value - The value from the user.
@@ -519,6 +528,7 @@ export class CommandoClient extends Client {
 
   /**
    * Tests a command's arguments for duplicate keys and for optional arguments before required ones.
+   *
    * @param command The command to test the arguments of.
    */
   private validateUnregisteredCommandArguments(command: Command): void {
