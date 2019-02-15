@@ -1,6 +1,6 @@
 // tslint:disable:no-console
 
-import { CommandoClient } from '../src/commando-lite'
+import { Client } from '../src'
 import * as path from 'path'
 // tslint:disable-next-line: no-unsafe-any no-require-imports no-var-requires
 const config = require('./auth') as Config
@@ -23,13 +23,13 @@ class Bot {
   /**
    * The command handler
    */
-  public client: CommandoClient
+  public client: Client
 
   /**
    * Creates an instance of the bot and registers events
    */
   public constructor() {
-    this.client = new CommandoClient({
+    this.client = new Client({
       commandPrefix: ['c.', 'c!'],
       ownerId: config.ownerId
     })

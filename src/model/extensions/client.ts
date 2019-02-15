@@ -1,8 +1,8 @@
-import { Client, Guild, GuildMember, Message, Util, Collection } from 'discord.js'
+import { Client as DiscordJsClient, Guild, GuildMember, Util, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { HelpCommand } from '../../commands'
-import { ArgumentType, Command, CommandoClientOptions, CommandoMessage, Event } from '..'
+import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
 import { DefaultOptions } from '../constants'
 
 /**
@@ -10,7 +10,7 @@ import { DefaultOptions } from '../constants'
  *
  * Contains extra methods and properties for managing commands.
  */
-export class CommandoClient extends Client {
+export class Client extends DiscordJsClient {
   /**
    * Holds all of the registered commands.
    */
@@ -19,19 +19,19 @@ export class CommandoClient extends Client {
   /**
    * The ClientOptions which were passed in the constructor.
    */
-  public readonly options: CommandoClientOptions
+  public readonly options: ClientOptions
 
   /**
    * The command to run whenever an unknown command is ran.
    */
   public unknownCommand?: Command
 
-  public constructor(options: CommandoClientOptions) {
+  public constructor(options: ClientOptions) {
     super(Util.mergeDefault(DefaultOptions, options))
 
     this.options = options
 
-    this.on('message', async (msg: CommandoMessage) => this.onMessage(msg))
+    this.on('message', async (msg: Message) => this.onMessage(msg))
   }
 
   /**
@@ -39,7 +39,7 @@ export class CommandoClient extends Client {
    *
    * @param callback The function to call on the message
    */
-  public onCommand(callback: (msg: CommandoMessage, cmd: Command, prefix: string) => void): void {
+  public onCommand(callback: (msg: Message, cmd: Command, prefix: string) => void): void {
     this.on(Event.COMMAND_RUN, callback)
   }
 
@@ -48,7 +48,7 @@ export class CommandoClient extends Client {
    *
    * @param callback The function to call on the invalid command
    */
-  public onInvalidCommand(callback: (msg: CommandoMessage) => void): void {
+  public onInvalidCommand(callback: (msg: Message) => void): void {
     this.on(Event.INVALID_COMMAND, callback)
   }
 
@@ -240,7 +240,7 @@ export class CommandoClient extends Client {
    *
    * @param msg - The CommandMessage representing the user's message
    */
-  private getPrefixFromMessage(msg: CommandoMessage): string {
+  private getPrefixFromMessage(msg: Message): string {
     let prefix = ''
 
     if (msg.channel.type === 'dm') {
@@ -262,7 +262,7 @@ export class CommandoClient extends Client {
   /**
    * Handles exceptions generated from command execution.
    */
-  private async handleCommandError(msg: CommandoMessage, err: Error): Promise<void> {
+  private async handleCommandError(msg: Message, err: Error): Promise<void> {
     // tslint:disable-next-line: no-non-null-assertion
     const owner = this.users.get(this.options.ownerId)!
     const ownerDisplayString = `${owner.username}#${owner.discriminator}`
@@ -284,7 +284,7 @@ export class CommandoClient extends Client {
    * @param command - The command object.
    * @param args - The formatted argument string array.
    */
-  private mapArgsToObject(msg: CommandoMessage, args: string[]): object | undefined {
+  private mapArgsToObject(msg: Message, args: string[]): object | undefined {
     if (!msg.command || !msg.command.options.args) {
       return undefined
     }
@@ -298,9 +298,9 @@ export class CommandoClient extends Client {
   /**
    * Helper method to check if message begins with a command prefix
    *
-   * @param msg - The CommandoMessage with the user's message
+   * @param msg - The CommandMessage with the user's message
    */
-  private messageStartsWithPrefix(msg: CommandoMessage): boolean {
+  private messageStartsWithPrefix(msg: Message): boolean {
     if (msg.channel.type === 'dm') {
       return true
     }
@@ -321,9 +321,9 @@ export class CommandoClient extends Client {
   /**
    * Handles when a user sends a message.
    *
-   * @param msg - CommandoMessage object
+   * @param msg - CommandMessage object
    */
-  private async onMessage(msg: CommandoMessage): Promise<void> {
+  private async onMessage(msg: Message): Promise<void> {
     if (msg.author.bot) {
       return
     }
@@ -338,9 +338,9 @@ export class CommandoClient extends Client {
   /**
    * Tries to get a command from the user's message and execute it
    *
-   * @param msg - The CommandoMessage representing the user's message
+   * @param msg - The CommandMessage representing the user's message
    */
-  private async parseMessageAsCommand(msg: CommandoMessage): Promise<void> {
+  private async parseMessageAsCommand(msg: Message): Promise<void> {
     const prefix = this.getPrefixFromMessage(msg)
     const withoutPrefix = msg.content.slice(prefix.length)
     const split = withoutPrefix.split(' ')
@@ -402,7 +402,7 @@ export class CommandoClient extends Client {
    * @param command - The command object to be ran.
    * @param args - Command args.
    */
-  private async runCommand(msg: CommandoMessage, args?: object): Promise<void> {
+  private async runCommand(msg: Message, args?: object): Promise<void> {
     if (!msg.command) {
       return
     }
@@ -425,7 +425,7 @@ export class CommandoClient extends Client {
    * @param command - The command object to be ran.
    * @param args - Command args.
    */
-  private async runCommandWithArgs(msg: CommandoMessage, args: string[]): Promise<void> {
+  private async runCommandWithArgs(msg: Message, args: string[]): Promise<void> {
     if (!msg.command) {
       return
     }
@@ -462,11 +462,7 @@ export class CommandoClient extends Client {
    * @param command - The command object.
    * @param args - The arguments provided by the user.
    */
-  private async validateArgs(
-    msg: CommandoMessage,
-    command: Command,
-    args: string[]
-  ): Promise<boolean> {
+  private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {
     for (let i = 0; i < args.length; i++) {
       if (!command.options.args) {
         continue

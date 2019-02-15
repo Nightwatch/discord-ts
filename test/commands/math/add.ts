@@ -1,7 +1,7 @@
-import { CommandoMessage, Command, CommandoClient } from '../../../src/commando-lite'
+import { Message, Command, Client } from '../../../src'
 
 module.exports = class AddNumbersCommand extends Command {
-  public constructor(client: CommandoClient) {
+  public constructor(client: Client) {
     super(client, {
       name: 'add-numbers',
       aliases: ['add', 'add-nums'],
@@ -16,7 +16,7 @@ module.exports = class AddNumbersCommand extends Command {
     })
   }
 
-  public async run(msg: CommandoMessage, args: AddCommandArguments): Promise<void> {
+  public async run(msg: Message, args: AddCommandArguments): Promise<void> {
     let total = 0
     const numberArray = args.numbers.split(' ')
 

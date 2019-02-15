@@ -1,0 +1,7 @@
+src/
+test/
+tslint.json
+tsconfig.json
+yarn*
+.travis*
+.rpt*

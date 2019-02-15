@@ -1,10 +1,10 @@
 {
-  "name": "commando-lite",
+  "name": "discord.ts",
   "version": "0.0.0",
-  "description": "",
+  "description": "Superset of discord.js with a built-in command framework.",
   "keywords": [],
-  "main": "dist/lib/commando-lite.js",
-  "typings": "dist/types/commando-lite.d.ts",
+  "main": "dist/lib/index.js",
+  "typings": "dist/types/index.d.ts",
   "files": [
     "dist"
   ],

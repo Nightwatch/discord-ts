@@ -1,15 +1,14 @@
 import { Command } from '../model/command'
-import { CommandoMessage } from '../model/extensions/message'
-import { CommandoClient } from '../model/extensions/client'
-import { MessageEmbed } from 'discord.js'
-import { CommandoEmbed } from '../model/extensions/embed'
+import { Message } from '../model/extensions/message'
+import { Client } from '../model/extensions/client'
+import { MessageEmbed } from '../model/extensions/embed'
 import { Argument } from '../model'
 
 /**
  * The default help command.
  */
 export class HelpCommand extends Command {
-  public constructor(client: CommandoClient) {
+  public constructor(client: Client) {
     super(client, {
       aliases: ['h', 'commands', 'cmds'],
       description: 'Shows the names and descriptions of all commands, and for certain commands.',
@@ -32,12 +31,12 @@ export class HelpCommand extends Command {
    * @param msg The message sent by the user
    * @param args The arguments
    */
-  public async run(msg: CommandoMessage, args: HelpCommandArgument): Promise<void> {
+  public async run(msg: Message, args: HelpCommandArgument): Promise<void> {
     if (!this.client.user) {
       return
     }
 
-    let embed = new CommandoEmbed(this.client).setAuthor(msg.author.username)
+    let embed = new MessageEmbed(this.client).setAuthor(msg.author.username)
 
     const foundCommand = Command.find(this.client, args.commandArg)
 
@@ -64,7 +63,7 @@ export class HelpCommand extends Command {
 
       if (embed.fields.length === 25 || length + addedLength > 6000) {
         await msg.author.send({ embed })
-        embed = new MessageEmbed().setTitle('Command list')
+        embed = new MessageEmbed(this.client).setTitle('Command list')
       }
 
       embed.addField(name, command.options.description)
@@ -77,9 +76,9 @@ export class HelpCommand extends Command {
   /**
    * Helper method to get the embed description
    *
-   * @param msg - The CommandoMessage from the command
+   * @param msg - The CommandMessage from the command
    */
-  private getDescription(msg: CommandoMessage): string {
+  private getDescription(msg: Message): string {
     const tag = this.client.user ? `@${this.client.user.tag}` : ''
     const guild = msg.guild ? msg.guild.name : ''
     const prefix = this.getPrefix()
@@ -111,7 +110,7 @@ export class HelpCommand extends Command {
    * @param command The command to tell the user about.
    */
   private async showHelpForCommand(
-    msg: CommandoMessage,
+    msg: Message,
     embed: MessageEmbed,
     command: Command
   ): Promise<void> {

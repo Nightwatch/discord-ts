@@ -1,4 +1,4 @@
-import { CommandoClient, CommandoMessage, CommandOptions } from '.'
+import { Client, Message, CommandOptions } from '.'
 
 /**
  * A command for your bot.
@@ -8,7 +8,7 @@ import { CommandoClient, CommandoMessage, CommandOptions } from '.'
  * @example
  * ```ts
  * export class EchoCommand extends Command {
- *   constructor(client: CommandoClient) {
+ *   constructor(client: Client) {
  *     super(client, {
  *       name: 'echo',
  *       description: 'Make me repeat something!',
@@ -22,7 +22,7 @@ import { CommandoClient, CommandoMessage, CommandOptions } from '.'
  *     })
  *   }
  *
- *   public async run(msg: CommandoMessage, args: {phrase: string}) {
+ *   public async run(msg: CommandMessage, args: {phrase: string}) {
  *     await msg.reply(args.phrase)
  *   }
  * }
@@ -35,7 +35,7 @@ export abstract class Command {
    * @param client - The parent client object
    * @param name - The name of the command, e.g. `echo`
    */
-  public static find(client: CommandoClient, name: string): Command | undefined {
+  public static find(client: Client, name: string): Command | undefined {
     return client.commands.find(
       x => x.options.name === name || (!!x.options.aliases && x.options.aliases.includes(name))
     )
@@ -44,14 +44,14 @@ export abstract class Command {
   /**
    * The client object that stores all command information.
    */
-  public readonly client: CommandoClient
+  public readonly client: Client
 
   /**
    * The options for the command, e.g. `name`, `description`, etc.
    */
   public readonly options: CommandOptions
 
-  public constructor(client: CommandoClient, options: CommandOptions) {
+  public constructor(client: Client, options: CommandOptions) {
     this.options = options
     this.client = client
   }
@@ -61,7 +61,7 @@ export abstract class Command {
    *
    * @param msg - The message object
    */
-  public async hasPermission(msg: CommandoMessage): Promise<boolean> {
+  public async hasPermission(msg: Message): Promise<boolean> {
     return true
   }
 
@@ -71,5 +71,5 @@ export abstract class Command {
    * @param msg - The message object.
    * @param args - An optional object containing the args from the CommandOptions that were passed in the constructor. E.g. for an `echo` command, you would use `args.phrase` to get the phrase to echo.
    */
-  public abstract async run(msg: CommandoMessage, args?: {}): Promise<unknown>
+  public abstract async run(msg: Message, args?: {}): Promise<unknown>
 }

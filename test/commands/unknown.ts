@@ -1,7 +1,7 @@
-import { CommandoClient, Command, CommandoMessage } from '../../src/commando-lite'
+import { Client, Command, Message } from '../../src'
 
 module.exports = class UnknownCommand extends Command {
-  public constructor(client: CommandoClient) {
+  public constructor(client: Client) {
     super(client, {
       name: 'unknown',
       description: 'Acts as a response to unknown commands.',
@@ -21,7 +21,7 @@ module.exports = class UnknownCommand extends Command {
    * @param msg - The object containing the user's message
    * @param args - Arguments passed to the command
    */
-  public async run(msg: CommandoMessage, args: UnknownCommandArgs): Promise<void> {
+  public async run(msg: Message, args: UnknownCommandArgs): Promise<void> {
     await msg.reply(`Unknown command \`${args.commandName}\`.`)
   }
 }
