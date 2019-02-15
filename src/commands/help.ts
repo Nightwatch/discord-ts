@@ -80,7 +80,7 @@ export class HelpCommand extends Command {
    * @param msg - The CommandoMessage from the command
    */
   private getDescription(msg: CommandoMessage): string {
-    const tag = `@${this.client.user.tag}`
+    const tag = this.client.user ? `@${this.client.user.tag}` : ''
     const guild = msg.guild ? msg.guild.name : ''
     const prefix = this.getPrefix()
 

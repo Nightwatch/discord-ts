@@ -18,6 +18,6 @@ export class CommandoEmbed extends MessageEmbed {
 
     this.setColor('GREEN')
     this.setTimestamp(new Date())
-    this.setFooter(client.user.username)
+    this.setFooter(client.user ? client.user.username : '')
   }
 }

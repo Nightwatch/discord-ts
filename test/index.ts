@@ -42,11 +42,13 @@ class Bot {
         console.warn(message)
       })
       .on('ready', () => {
-        console.log(
-          `Client ready; logged in as ${this.client.user.username}#${
-            this.client.user.discriminator
-          } (${this.client.user.id})`
-        )
+        if (this.client.user) {
+          console.log(
+            `Client ready; logged in as ${this.client.user.username}#${
+              this.client.user.discriminator
+            } (${this.client.user.id})`
+          )
+        }
       })
       .on('disconnect', () => {
         console.warn('Disconnected!')
