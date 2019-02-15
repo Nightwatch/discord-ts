@@ -21,12 +21,13 @@
     "lint": "tslint  --project . --format stylish --fix",
     "prebuild": "rimraf dist",
     "build": "tsc && typedoc --out docs --target es6 --theme minimal --mode file src",
-    "precommit": "lint-staged && npm run build",
+    "precommit": "lint-staged",
     "test": "ts-node test/index.ts"
   },
   "lint-staged": {
     "{src}/**/*.ts": [
       "prettier --write",
+      "npm run build",
       "git add"
     ]
   },
