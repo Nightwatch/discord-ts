@@ -21,6 +21,7 @@
     "no-magic-numbers": false,
     "only-arrow-functions": false,
     "ordered-imports": false,
-    "curly": true
+    "curly": true,
+    "object-literal-sort-keys": false
   }
 }

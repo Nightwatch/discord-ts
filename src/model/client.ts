@@ -414,7 +414,7 @@ export class CommandoClient extends Client {
       return
     }
 
-    return msg.command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
+    await msg.command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
   }
 
   /**

@@ -70,5 +70,5 @@ export abstract class Command {
    * @param msg - The message object.
    * @param args - An optional object containing the args from the CommandOptions that were passed in the constructor. E.g. for an `echo` command, you would use `args.phrase` to get the phrase to echo.
    */
-  public abstract async run(msg: CommandoMessage, args?: {}): Promise<void>
+  public abstract async run(msg: CommandoMessage, args?: {}): Promise<unknown>
 }
