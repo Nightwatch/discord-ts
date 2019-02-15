@@ -1,4 +1,4 @@
-import { CommandoMessage, Command, CommandoClient } from '../../..'
+import { CommandoMessage, Command, CommandoClient } from '../../../src/commando-lite'
 
 module.exports = class AddNumbersCommand extends Command {
   public constructor(client: CommandoClient) {
@@ -6,10 +6,10 @@ module.exports = class AddNumbersCommand extends Command {
       name: 'add-numbers',
       aliases: ['add', 'add-nums'],
       description: 'Adds numbers together.',
-
       args: [
         {
           key: 'numbers',
+          phrase: 'What numbers would you like to add?',
           type: 'string'
         }
       ]

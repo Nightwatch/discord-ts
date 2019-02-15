@@ -21,6 +21,11 @@ export interface Argument {
   optional?: boolean
 
   /**
+   * A message that displays when the argument is missing.
+   */
+  phrase: string
+
+  /**
    * The type of the argument.
    * Can be a single type, or an array of types.
    *

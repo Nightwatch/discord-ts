@@ -1,9 +1,20 @@
 // tslint:disable:no-console
 
-import { CommandoClient } from '..'
+import { CommandoClient } from '../src/commando-lite'
 import * as path from 'path'
 // tslint:disable-next-line: no-unsafe-any no-require-imports no-var-requires
-const token = require('./auth').token as string
+const config = require('./auth') as Config
+
+interface Config {
+  /**
+   * Your Discord user ID
+   */
+  ownerId: string
+  /**
+   * The bot token
+   */
+  token: string
+}
 
 /**
  * The main bot class. I am important.
@@ -20,7 +31,7 @@ class Bot {
   public constructor() {
     this.client = new CommandoClient({
       commandPrefix: ['c.', 'c!'],
-      ownerId: '176785428450377728'
+      ownerId: config.ownerId
     })
 
     this.client
@@ -51,7 +62,7 @@ class Bot {
   public async start(): Promise<void> {
     this.client.registerDefaultCommands()
     await this.client.registerCommandsIn(path.join(__dirname, 'commands'))
-    await this.client.login(token)
+    await this.client.login(config.token)
   }
 }
 

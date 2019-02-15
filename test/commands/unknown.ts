@@ -1,4 +1,4 @@
-import { CommandoClient, Command, CommandoMessage } from '../..'
+import { CommandoClient, Command, CommandoMessage } from '../../src/commando-lite'
 
 module.exports = class UnknownCommand extends Command {
   public constructor(client: CommandoClient) {
@@ -6,10 +6,10 @@ module.exports = class UnknownCommand extends Command {
       name: 'unknown',
       description: 'Acts as a response to unknown commands.',
       unknown: true,
-
       args: [
         {
           key: 'cmd',
+          phrase: 'What command are you wanting to run?',
           type: 'string'
         }
       ]

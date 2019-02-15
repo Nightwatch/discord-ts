@@ -18,6 +18,7 @@ export class HelpCommand extends Command {
       args: [
         {
           key: 'commandArg',
+          phrase: 'Which command do you want to run?',
           optional: true,
           type: 'string'
         }

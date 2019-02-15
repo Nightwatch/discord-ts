@@ -21,7 +21,8 @@
     "lint": "tslint  --project . --format stylish --fix",
     "prebuild": "rimraf dist",
     "build": "tsc && typedoc --out docs --target es6 --theme minimal --mode file src",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "test": "ts-node test/index.ts"
   },
   "lint-staged": {
     "{src}/**/*.ts": [
@@ -54,7 +55,7 @@
     "rimraf": "^2.6.2",
     "shelljs": "^0.8.3",
     "ts-jest": "^23.10.2",
-    "ts-node": "^7.0.1",
+    "ts-node": "^8.0.2",
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
     "tslint-config-standard": "^8.0.1",
