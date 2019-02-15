@@ -19,7 +19,7 @@ You can install Discord.ts with your favorite package manager:
 To create a bot, you need to create a `Client` instance.
 
 ```ts
-import { Client } from 'discrd.ts'
+import { Client } from 'discord.ts'
 
 const client = new Client({
   commandPrefix: 'c',
