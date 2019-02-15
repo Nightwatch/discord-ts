@@ -2,6 +2,8 @@ import { Command } from '../model/command'
 import { CommandoMessage } from '../model/message'
 import { CommandoClient } from '../model/client'
 import { MessageEmbed } from 'discord.js'
+import { CommandoEmbed } from '../model/embed'
+import { Argument } from '../model'
 
 /**
  * The default help command.
@@ -34,33 +36,17 @@ export class HelpCommand extends Command {
       return
     }
 
-    let embed = new MessageEmbed()
-      .setAuthor(msg.author.username, msg.author.displayAvatarURL())
-      .setColor(this.client.options.color || 'GREEN')
-      .setFooter(this.client.user.username, this.client.user.displayAvatarURL())
-    const prefix =
-      typeof this.client.options.commandPrefix === 'string'
-        ? this.client.options.commandPrefix
-        : this.client.options.commandPrefix[0]
-    const cmd = Command.find(this.client, args.commandArg)
+    let embed = new CommandoEmbed(this.client).setAuthor(msg.author.username)
 
-    if (cmd) {
-      return this.showHelpForCommand(msg, embed, prefix, cmd)
+    const foundCommand = Command.find(this.client, args.commandArg)
+
+    if (foundCommand) {
+      return this.showHelpForCommand(msg, embed, foundCommand)
     }
 
-    const tag = this.client.user ? `@${this.client.user.tag}` : ''
-    const guild = msg.guild ? msg.guild.name : ''
-    let description = `Use \`${prefix}command\`${
-      tag ? ` or \`${tag} command\`` : ''
-    } to run a command. For example, \`${prefix}help\`${tag ? ` or \`${tag} help\`` : ''}.\n`
-    description += `To run a command in DMs with me, use \`command\` with no prefix.\n\n`
-    description += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
-    description += `__**Available commands${guild ? ` in ${guild}` : ''}**__\n\n`
+    embed.setTitle('Command List').setDescription(this.getDescription(msg))
 
-    embed.setTitle('Command List').setDescription(description)
-
-    // tslint:disable-next-line no-non-null-assertion
-    let length = embed.title.length + embed.footer.text!.length + embed.description.length
+    let length = embed.title.length + (embed.footer.text || '').length + embed.description.length
 
     for (const command of this.client.commands.values()) {
       if (
@@ -88,6 +74,35 @@ export class HelpCommand extends Command {
   }
 
   /**
+   * Helper method to get the embed description
+   *
+   * @param msg - The CommandoMessage from the command
+   */
+  private getDescription(msg: CommandoMessage): string {
+    const tag = `@${this.client.user.tag}`
+    const guild = msg.guild ? msg.guild.name : ''
+    const prefix = this.getPrefix()
+
+    let description = `Use \`${prefix}command\ or \`${tag} command\` to run a command. For example, \`${prefix}help\` or \`${tag} help\`.\n`
+    description += `To run a command in DMs with me, use \`command\` with no prefix.\n\n`
+    description += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
+    description += guild
+      ? `__**Available commands in ${guild}**__\n\n`
+      : '__**Available commands**__\n\n'
+
+    return description
+  }
+
+  /**
+   * Helper method to get the command prefix
+   */
+  private getPrefix(): string {
+    return typeof this.client.options.commandPrefix === 'string'
+      ? this.client.options.commandPrefix
+      : this.client.options.commandPrefix[0]
+  }
+
+  /**
    * Tells the user about a single command, rather than all of them.
    * @param msg The message sent by the user.
    * @param embed The embed to send with the message.
@@ -97,15 +112,13 @@ export class HelpCommand extends Command {
   private async showHelpForCommand(
     msg: CommandoMessage,
     embed: MessageEmbed,
-    prefix: string,
     command: Command
   ): Promise<void> {
+    const prefix = this.getPrefix()
+    const formatArgument = (argument: Argument) =>
+      argument.optional ? `[${argument.key}]` : `<${argument.key}>`
     const format = `\`${prefix}${command.options.name} ${
-      command.options.args
-        ? command.options.args
-            .map(arg => (arg.optional ? `[${arg.key}]` : `<${arg.key}>`))
-            .join(' ')
-        : ''
+      command.options.args ? command.options.args.map(formatArgument).join(' ') : ''
     }\``
 
     const aliases = command.options.aliases

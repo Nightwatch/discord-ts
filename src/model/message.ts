@@ -9,7 +9,7 @@ export class CommandoMessage extends Message {
   /**
    * The command that was ran.
    */
-  public command: Command | undefined = undefined
+  public command?: Command
 
   public constructor(
     client: CommandoClient,

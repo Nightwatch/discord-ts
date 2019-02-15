@@ -127,12 +127,12 @@ export class CommandoClient extends Client {
    * @param to - The expected type.
    * @param guild - The guild the command was from.
    */
-  private convertArgToType(
+  private convertArgToType<K extends keyof ArgumentType>(
     from: string,
-    to: ArgumentType | ArgumentType[],
+    to: K | K[],
     guild?: Guild
-  ): string | number | GuildMember | undefined {
-    const convert = (toType: ArgumentType) => {
+  ): ArgumentType[K] | undefined {
+    const convert = (toType: K) => {
       switch (toType) {
         case 'number':
           return Number(from)
@@ -237,6 +237,30 @@ export class CommandoClient extends Client {
   }
 
   /**
+   * Gets the prefix used by the user (in case an array was used)
+   *
+   * @param msg - The CommandMessage representing the user's message
+   */
+  private getPrefixFromMessage(msg: CommandoMessage): string {
+    let prefix = ''
+
+    if (msg.channel.type === 'dm') {
+      prefix = ''
+    } else if (typeof this.options.commandPrefix === 'string') {
+      prefix = this.options.commandPrefix
+    } else {
+      for (const prefixOption of this.options.commandPrefix) {
+        if (msg.content.startsWith(prefixOption)) {
+          prefix = prefixOption
+          break
+        }
+      }
+    }
+
+    return prefix
+  }
+
+  /**
    * Handles exceptions generated from command execution.
    */
   private async handleCommandError(msg: CommandoMessage, err: Error): Promise<void> {
@@ -273,6 +297,28 @@ export class CommandoClient extends Client {
   }
 
   /**
+   * Helper method to check if message begins with a command prefix
+   * @param msg - The CommandoMessage with the user's message
+   */
+  private messageStartsWithPrefix(msg: CommandoMessage): boolean {
+    if (msg.channel.type === 'dm') {
+      return true
+    }
+
+    if (typeof this.options.commandPrefix === 'string') {
+      return msg.content.startsWith(this.options.commandPrefix)
+    }
+
+    for (const prefix of this.options.commandPrefix) {
+      if (msg.content.startsWith(prefix)) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  /**
    * Handles when a user sends a message.
    *
    * @param msg - CommandoMessage object
@@ -282,29 +328,19 @@ export class CommandoClient extends Client {
       return
     }
 
-    let prefix: string | undefined
-
-    if (msg.channel.type === 'dm') {
-      prefix = ''
-    } else if (typeof this.options.commandPrefix === 'string') {
-      if (!msg.content.startsWith(this.options.commandPrefix)) {
-        return
-      }
-
-      prefix = this.options.commandPrefix
-    } else {
-      for (const pref of this.options.commandPrefix) {
-        if (msg.content.startsWith(pref)) {
-          prefix = pref
-          break
-        }
-      }
-
-      if (prefix === undefined) {
-        return
-      }
+    if (!this.messageStartsWithPrefix(msg)) {
+      return
     }
 
+    await this.parseMessageAsCommand(msg)
+  }
+
+  /**
+   * Tries to get a command from the user's message and execute it
+   * @param msg - The CommandoMessage representing the user's message
+   */
+  private async parseMessageAsCommand(msg: CommandoMessage): Promise<void> {
+    const prefix = this.getPrefixFromMessage(msg)
     const withoutPrefix = msg.content.slice(prefix.length)
     const split = withoutPrefix.split(' ')
     const commandName = split[0]
@@ -406,7 +442,7 @@ export class CommandoClient extends Client {
 
     const formattedArgs = this.getFormattedArgs(msg.command, args)
 
-    const argsValid = this.validateArgs(msg, formattedArgs)
+    const argsValid = this.validateArgs(msg, msg.command, formattedArgs)
 
     if (!argsValid) {
       return
@@ -424,41 +460,33 @@ export class CommandoClient extends Client {
    * @param command - The command object.
    * @param args - The arguments provided by the user.
    */
-  private async validateArgs(msg: CommandoMessage, args: string[]): Promise<boolean> {
-    if (!msg.command) {
-      return false
-    }
-
+  private async validateArgs(
+    msg: CommandoMessage,
+    command: Command,
+    args: string[]
+  ): Promise<boolean> {
     for (let i = 0; i < args.length; i++) {
-      if (!msg.command.options.args) {
+      if (!command.options.args) {
         continue
       }
 
-      const expectedType = msg.command.options.args[i].type
+      const expectedType = [...command.options.args[i].type]
 
-      if (Array.isArray(expectedType)) {
-        let foundType = false
-        for (const t of expectedType) {
-          if (this.validateType(msg, t, args[i])) {
-            foundType = true
-            break
-          }
+      let foundType = false
+      for (const t of expectedType) {
+        if (this.validateType(msg, t as keyof ArgumentType, args[i])) {
+          foundType = true
+          break
         }
-
-        if (!foundType) {
-          await msg.reply(`Argument type mismatch at '${args[i]}'`)
-
-          return false
-        }
-
-        return true
       }
 
-      if (!this.validateType(msg, expectedType, args[i])) {
+      if (!foundType) {
         await msg.reply(`Argument type mismatch at '${args[i]}'`)
 
         return false
       }
+
+      return true
     }
 
     return true
@@ -470,7 +498,11 @@ export class CommandoClient extends Client {
    * @param expected - The expected type.
    * @param value - The value from the user.
    */
-  private validateType(msg: Message, expected: ArgumentType, value: string): boolean {
+  private validateType<K extends keyof ArgumentType>(
+    msg: Message,
+    expected: K,
+    value: string
+  ): boolean {
     switch (expected) {
       case 'number':
         return !!Number(value)

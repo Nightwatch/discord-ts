@@ -36,5 +36,5 @@ export interface Argument {
    *
    * The order of the types matter. I parse the type from left to right.
    */
-  type: ArgumentType | ArgumentType[]
+  type: (keyof ArgumentType) | Array<keyof ArgumentType>
 }
