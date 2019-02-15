@@ -10,7 +10,11 @@ export const DefaultOptions: ClientOptions = {
   restTimeOffset: 500,
   restWsBridgeTimeout: 5000,
   retryLimit: 1,
+  restSweepInterval: 60,
+  shardCount: 1,
+  totalShardCount: 1,
   http: {
+    host: 'https://discordapp.com/api',
     cdn: 'https://cdn.discordapp.com',
     invite: 'https://discord.gg',
     version: 7

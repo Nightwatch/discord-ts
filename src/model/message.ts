@@ -1,4 +1,4 @@
-import { DMChannel, GroupDMChannel, Message, Structures, TextChannel } from 'discord.js'
+import { DMChannel, Message, Structures, TextChannel } from 'discord.js'
 import { CommandoClient } from '.'
 import { Command } from './command'
 
@@ -11,11 +11,7 @@ export class CommandoMessage extends Message {
    */
   public command?: Command
 
-  public constructor(
-    client: CommandoClient,
-    data: object,
-    channel: DMChannel | TextChannel | GroupDMChannel
-  ) {
+  public constructor(client: CommandoClient, data: object, channel: DMChannel | TextChannel) {
     super(client, data, channel)
   }
 }
