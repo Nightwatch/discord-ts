@@ -84,7 +84,7 @@ export class HelpCommand extends Command {
     const guild = msg.guild ? msg.guild.name : ''
     const prefix = this.getPrefix()
 
-    let description = `Use \`${prefix}command\ or \`${tag} command\` to run a command. For example, \`${prefix}help\` or \`${tag} help\`.\n`
+    let description = `Use \`${prefix}command\` or \`${tag} command\` to run a command. For example, \`${prefix}help\` or \`${tag} help\`.\n`
     description += `To run a command in DMs with me, use \`command\` with no prefix.\n\n`
     description += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
     description += guild
