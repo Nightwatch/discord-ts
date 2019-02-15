@@ -8,7 +8,7 @@ module.exports = class UnknownCommand extends Command {
       unknown: true,
       args: [
         {
-          key: 'cmd',
+          key: 'commandName',
           phrase: 'What command are you wanting to run?',
           type: 'string'
         }
