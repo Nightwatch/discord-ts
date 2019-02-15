@@ -1,8 +1,8 @@
 import { Command } from '../model/command'
-import { CommandoMessage } from '../model/message'
-import { CommandoClient } from '../model/client'
+import { CommandoMessage } from '../model/extensions/message'
+import { CommandoClient } from '../model/extensions/client'
 import { MessageEmbed } from 'discord.js'
-import { CommandoEmbed } from '../model/embed'
+import { CommandoEmbed } from '../model/extensions/embed'
 import { Argument } from '../model'
 
 /**

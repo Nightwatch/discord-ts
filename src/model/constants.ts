@@ -24,8 +24,3 @@ export const DefaultOptions: ClientOptions = {
     large_threshold: 250
   }
 }
-
-export enum Event {
-  INVALID_COMMAND = 'invalidCommand',
-  COMMAND_RUN = 'command'
-}
