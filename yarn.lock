@@ -847,13 +847,12 @@ discord.js@discordjs/discord.js:
   version "12.0.0-dev"
   resolved "https://codeload.github.com/discordjs/discord.js/tar.gz/0564c5c777cfd2391261417a2047d4d7f92474ca"
   dependencies:
-    form-data "^2.3.3"
-    node-fetch "^2.3.0"
-    pako "^1.0.8"
+    form-data "^2.3.2"
+    node-fetch "^2.1.2"
+    pako "^1.0.0"
     prism-media amishshah/prism-media
-    setimmediate "^1.0.5"
-    tweetnacl "^1.0.1"
-    ws "^6.1.3"
+    tweetnacl "^1.0.0"
+    ws "^6.0.0"
 
 doctrine@0.7.2:
   version "0.7.2"
@@ -2915,6 +2914,11 @@ tweetnacl@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.1.tgz#2594d42da73cd036bd0d2a54683dd35a6b55ca17"
   integrity sha512-kcoMoKTPYnoeS50tzoqjPY3Uv9axeuuFAZY9M/9zFnhoVvRfxz9K29IMPD7jGmt2c8SW7i3gT9WqDl2+nV7p4A==
+
+typedoc-clarity-theme@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/typedoc-clarity-theme/-/typedoc-clarity-theme-1.1.0.tgz#11294adde4f342e2fc66a5fa62a6fb7438cc561c"
+  integrity sha1-ESlK3eTzQuL8ZqX6Yqb7dDjMVhw=
 
 typedoc-default-themes@^0.5.0:
   version "0.5.0"
