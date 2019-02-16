@@ -63,7 +63,6 @@ export {
   GuildAuditLogsTarget,
   GuildAuditLogsTargets,
   GuildChannel,
-  GuildChannelCloneOptions,
   GuildChannelResolvable,
   GuildChannelStore,
   GuildCreateChannelOptions,

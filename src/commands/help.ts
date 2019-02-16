@@ -36,47 +36,20 @@ export class HelpCommand extends Command {
       return
     }
 
-    let embed = new MessageEmbed(this.client).setAuthor(msg.author.username)
-
+    const embed = new MessageEmbed(this.client).setAuthor(msg.author.username)
     const foundCommand = Command.find(this.client, args.commandArg)
 
     if (foundCommand) {
       return this.showHelpForCommand(msg, embed, foundCommand)
     }
 
-    embed.setTitle('Command List').setDescription(this.getDescription(msg))
-
-    let length = embed.title.length + (embed.footer.text || '').length + embed.description.length
-
-    for (const command of this.client.commands.values()) {
-      if (
-        command.options.unknown ||
-        command.options.hidden ||
-        ((args.commandArg !== 'all' && !command.hasPermission(msg)) ||
-          (command.options.guildOnly && msg.guild))
-      ) {
-        continue
-      }
-
-      const name = `${command.options.name}${command.options.guildOnly ? '(Guild only)' : ''}`
-      const addedLength = name.length + command.options.description.length
-
-      if (embed.fields.length === 25 || length + addedLength > 6000) {
-        await msg.author.send({ embed })
-        embed = new MessageEmbed(this.client).setTitle('Command list')
-      }
-
-      embed.addField(name, command.options.description)
-      length += addedLength
-    }
-
-    await msg.author.send({ embed })
+    return this.showHelp(msg, embed, args.commandArg === 'all')
   }
 
   /**
    * Helper method to get the embed description
    *
-   * @param msg - The CommandMessage from the command
+   * @param msg - The Message from the command
    */
   private getDescription(msg: Message): string {
     const tag = this.client.user ? `@${this.client.user.tag}` : ''
@@ -100,6 +73,41 @@ export class HelpCommand extends Command {
     return typeof this.client.options.commandPrefix === 'string'
       ? this.client.options.commandPrefix
       : this.client.options.commandPrefix[0]
+  }
+
+  /**
+   * Tells the user about every command.
+   * @param msg The message sent by the user.
+   * @param embedArg The embed to send with the message.
+   * @param showAll Whether or not we should show all commands.
+   */
+  private async showHelp(msg: Message, embedArg: MessageEmbed, showAll: boolean): Promise<void> {
+    let embed = embedArg.setTitle('Command List').setDescription(this.getDescription(msg))
+
+    let length = embed.title.length + (embed.footer.text || '').length + embed.description.length
+
+    for (const command of this.client.commands.values()) {
+      if (
+        command.options.unknown ||
+        command.options.hidden ||
+        ((showAll && !command.hasPermission(msg)) || (command.options.guildOnly && msg.guild))
+      ) {
+        continue
+      }
+
+      const name = `${command.options.name}${command.options.guildOnly ? '(Guild only)' : ''}`
+      const addedLength = name.length + command.options.description.length
+
+      if (embed.fields.length === 25 || length + addedLength > 6000) {
+        await msg.author.send({ embed })
+        embed = new MessageEmbed(this.client).setTitle('Command list')
+      }
+
+      embed.addField(name, command.options.description)
+      length += addedLength
+    }
+
+    await msg.author.send({ embed })
   }
 
   /**

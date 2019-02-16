@@ -1,4 +1,5 @@
 import { ClientOptions } from 'discord.js'
+
 export const DefaultOptions: ClientOptions = {
   disableEveryone: false,
   disabledEvents: [],
@@ -11,6 +12,7 @@ export const DefaultOptions: ClientOptions = {
   restWsBridgeTimeout: 5000,
   retryLimit: 1,
   shardCount: 1,
+  totalShardCount: 1,
   http: {
     host: 'https://discordapp.com/api',
     cdn: 'https://cdn.discordapp.com',

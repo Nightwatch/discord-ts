@@ -371,6 +371,7 @@ export class Client extends DiscordJsClient {
     return this.runCommand(msg)
   }
 
+  // tslint:disable: no-unsafe-any
   /**
    * Tries to get command from a single file.
    *
@@ -385,15 +386,19 @@ export class Client extends DiscordJsClient {
       // swallow
     }
 
+    if (ResolvableCommand.default) {
+      ResolvableCommand = ResolvableCommand.default
+    }
+
     if (!ResolvableCommand) {
       return
     }
 
-    // tslint:disable-next-line: no-unsafe-any
     const instance: Command = new ResolvableCommand(this)
 
     this.registerCommand(instance)
   }
+  // tslint:enable: no-unsafe-any
 
   /**
    * Wrapper method to execute a command. Checks permission and handles exceptions.
