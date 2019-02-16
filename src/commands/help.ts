@@ -43,7 +43,7 @@ export class HelpCommand extends Command {
       return this.showHelpForCommand(msg, embed, foundCommand)
     }
 
-    this.showHelp(msg, embed, args.commandArg === 'all')
+    return this.showHelp(msg, embed, args.commandArg === 'all')
   }
 
   /**

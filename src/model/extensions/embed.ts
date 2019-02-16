@@ -16,7 +16,7 @@ export class MessageEmbed extends DiscordJsMessageEmbed {
   public constructor(client: Client, options?: MessageEmbedOptions) {
     super(options)
 
-    this.setColor('GREEN')
+    this.setColor(client.options.color || 'GREEN')
     this.setTimestamp(new Date())
     this.setFooter(client.user ? client.user.username : '')
   }
