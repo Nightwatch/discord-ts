@@ -1,6 +1,10 @@
 import { Message, Command, Client } from '../../../src'
 
-module.exports = class AddNumbersCommand extends Command {
+/**
+ * Simple command to add numbers together
+ */
+// tslint:disable-next-line: no-default-export
+export default class AddNumbersCommand extends Command {
   public constructor(client: Client) {
     super(client, {
       name: 'add-numbers',

@@ -1,6 +1,10 @@
 import { Client, Command, Message } from '../../src'
 
-module.exports = class UnknownCommand extends Command {
+/**
+ * Custom command to handle unknown commands
+ */
+// tslint:disable-next-line: no-default-export
+export default class UnknownCommand extends Command {
   public constructor(client: Client) {
     super(client, {
       name: 'unknown',
