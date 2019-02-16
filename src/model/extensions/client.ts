@@ -385,6 +385,10 @@ export class Client extends DiscordJsClient {
       // swallow
     }
 
+    if (ResolvableCommand.default) {
+      ResolvableCommand = ResolvableCommand.default
+    }
+
     if (!ResolvableCommand) {
       return
     }

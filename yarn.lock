@@ -851,6 +851,7 @@ discord.js@discordjs/discord.js:
     node-fetch "^2.1.2"
     pako "^1.0.0"
     prism-media amishshah/prism-media
+    setimmediate "^1.0.5"
     tweetnacl "^1.0.0"
     ws "^6.0.0"
 
@@ -2492,6 +2493,11 @@ set-value@^2.0.0:
     is-plain-object "^2.0.3"
     split-string "^3.0.1"
 
+setimmediate@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/setimmediate/-/setimmediate-1.0.5.tgz#290cbb232e306942d7d7ea9b83732ab7856f8285"
+  integrity sha1-KQy7Iy4waULX1+qbg3Mqt4VvgoU=
+
 shebang-command@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/shebang-command/-/shebang-command-1.2.0.tgz#44aac65b695b03398968c39f363fee5deafdf1ea"
@@ -2909,11 +2915,6 @@ tweetnacl@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.1.tgz#2594d42da73cd036bd0d2a54683dd35a6b55ca17"
   integrity sha512-kcoMoKTPYnoeS50tzoqjPY3Uv9axeuuFAZY9M/9zFnhoVvRfxz9K29IMPD7jGmt2c8SW7i3gT9WqDl2+nV7p4A==
-
-typedoc-clarity-theme@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/typedoc-clarity-theme/-/typedoc-clarity-theme-1.1.0.tgz#11294adde4f342e2fc66a5fa62a6fb7438cc561c"
-  integrity sha1-ESlK3eTzQuL8ZqX6Yqb7dDjMVhw=
 
 typedoc-default-themes@^0.5.0:
   version "0.5.0"
