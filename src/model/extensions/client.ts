@@ -4,6 +4,8 @@ import * as path from 'path'
 import { HelpCommand } from '../../commands'
 import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
 import { DefaultOptions } from '../constants'
+import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
+import { Logger } from '../../util'
 
 /**
  * Extension of the Discord.js Client.
@@ -58,15 +60,7 @@ export class Client extends DiscordJsClient {
    * @param command - The command object
    */
   public registerCommand(command: Command): void {
-    const duplicate = this.findDuplicate(command)
-
-    if (duplicate) {
-      throw new TypeError(
-        `Unable to register command '${command.options.name}'. I've already registered a command '${
-          duplicate.options.name
-        }' which either has the same name or shares an alias.`
-      )
-    }
+    this.findDuplicateAndFail(command)
 
     this.validateUnregisteredCommandArguments(command)
 
@@ -129,19 +123,17 @@ export class Client extends DiscordJsClient {
     from: string,
     to: K | K[],
     guild?: Guild
-  ): ArgumentType[K] | undefined {
-    const convert = (toType: K) => {
+  ): Maybe<ArgumentType[K]> {
+    const convert = (toType: K): Maybe<ArgumentType[K]> => {
       switch (toType) {
         case 'number':
-          return Number(from)
+          return Just(Number(from))
         case 'user':
-          if (!guild) {
-            return undefined
-          }
-
-          return this.getMemberFromMention(guild, from)
+          return Maybe.fromFalsy(guild).chain(justGuild =>
+            this.getMemberFromMention(justGuild, from)
+          )
         default:
-          return from
+          return Just(from)
       }
     }
 
@@ -154,10 +146,24 @@ export class Client extends DiscordJsClient {
         }
       }
 
-      return undefined
+      return Nothing
     }
 
     return convert(to)
+  }
+
+  /**
+   * Helper method to fail when a duplicate command is registered.
+   *
+   * @param command - The comamnd that was attempted to be registered.
+   * @param existingCommand - A command that was previously registered with the same name or alias.
+   */
+  private failDuplicate(command: Command, existingCommand: Command): never {
+    throw new TypeError(
+      `Unable to register command '${command.options.name}'. I've already registered a command '${
+        existingCommand.options.name
+      }' which either has the same name or shares an alias.`
+    )
   }
 
   /**
@@ -165,22 +171,22 @@ export class Client extends DiscordJsClient {
    *
    * @param command The command to check against all other commands.
    */
-  private findDuplicate(command: Command): Command | void {
+  private findDuplicateAndFail(command: Command): void {
     const commandSameName = Command.find(this, command.options.name)
 
     if (commandSameName) {
-      return commandSameName
+      this.failDuplicate(command, commandSameName)
     }
 
     if (!command.options.aliases) {
-      return undefined
+      return
     }
 
     for (const alias of command.options.aliases) {
       const commandSameAlias = Command.find(this, alias)
 
       if (commandSameAlias) {
-        return commandSameAlias
+        this.failDuplicate(command, commandSameAlias)
       }
     }
   }
@@ -215,24 +221,13 @@ export class Client extends DiscordJsClient {
    * @param guild - The guild the mention came from.
    * @param mention - The user mention.
    */
-  private getMemberFromMention(guild: Guild, mention: string): GuildMember | undefined {
+  private getMemberFromMention(guild: Guild, mention: NonNullable<string>): Maybe<GuildMember> {
     // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
 
-    if (!mention) {
-      return undefined
-    }
-
-    let id: string
-
-    if (mention.startsWith('<@') && mention.endsWith('>')) {
-      id = mention.slice(2, -1)
-
-      if (id.startsWith('!')) {
-        id = mention.slice(1)
-      }
-
-      return guild.members.get(id)
-    }
+    return Maybe.fromPredicate(id => id.startsWith('<@') && id.endsWith('>'), mention)
+      .map(id => id.slice(2, -1))
+      .map(id => id.replace('!', ''))
+      .chainNullable(id => guild.members.get(id))
   }
 
   /**
@@ -262,7 +257,7 @@ export class Client extends DiscordJsClient {
   /**
    * Handles exceptions generated from command execution.
    */
-  private async handleCommandError(msg: Message, err: Error): Promise<void> {
+  private async handleCommandError(msg: Message, error: Error): Promise<void> {
     // tslint:disable-next-line: no-non-null-assertion
     const owner = this.users.get(this.options.ownerId)!
     const ownerDisplayString = `${owner.username}#${owner.discriminator}`
@@ -270,12 +265,13 @@ export class Client extends DiscordJsClient {
       .reply(
         // tslint:disable-next-line: no-non-null-assertion
         `An error occurred during the execution of the \`${msg.command!.options.name}\` command: ${
-          err.message
+          error.message
         }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
       )
       .catch(_ => {
         // swallow
       })
+    Logger.error(error)
   }
 
   /**
@@ -530,7 +526,7 @@ export class Client extends DiscordJsClient {
    *
    * @param command The command to test the arguments of.
    */
-  private validateUnregisteredCommandArguments(command: Command): void {
+  private validateUnregisteredCommandArguments(command: NonNullable<Command>): void {
     if (command.options.args) {
       const keys: string[] = []
       let optional = false

@@ -1,7 +1,6 @@
-// tslint:disable:no-console
-
 import { Client } from '../src'
 import * as path from 'path'
+import { Logger } from '../src/util'
 // tslint:disable-next-line: no-unsafe-any no-require-imports no-var-requires
 const config = require('./auth') as Config
 
@@ -36,14 +35,14 @@ class Bot {
 
     this.client
       .on('error', error => {
-        console.error(error)
+        Logger.error(error)
       })
       .on('warn', message => {
-        console.warn(message)
+        Logger.warn(message)
       })
       .on('ready', () => {
         if (this.client.user) {
-          console.log(
+          Logger.info(
             `Client ready; logged in as ${this.client.user.username}#${
               this.client.user.discriminator
             } (${this.client.user.id})`
@@ -51,10 +50,10 @@ class Bot {
         }
       })
       .on('disconnect', () => {
-        console.warn('Disconnected!')
+        Logger.warn('Disconnected!')
       })
       .on('reconnecting', () => {
-        console.warn('Reconnecting...')
+        Logger.warn('Reconnecting...')
       })
   }
 
@@ -71,8 +70,8 @@ class Bot {
 new Bot()
   .start()
   .then(() => {
-    console.log('uwu')
+    Logger.info('uwu')
   })
-  .catch(error => {
-    console.error(error)
+  .catch((error: Error) => {
+    Logger.error(error)
   })

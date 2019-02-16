@@ -22,6 +22,7 @@
     "only-arrow-functions": false,
     "ordered-imports": false,
     "curly": true,
-    "object-literal-sort-keys": false
+    "object-literal-sort-keys": false,
+    "no-submodule-imports": false
   }
 }
