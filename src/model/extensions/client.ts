@@ -86,7 +86,7 @@ export class Client extends DiscordJsClient {
    */
   public async registerCommandsIn(filePath: string | string[]): Promise<void> {
     if (typeof filePath === 'string') {
-      return walk(filePath).then(files => {
+      return this.walk(filePath).then(files => {
         files.forEach(async (file: string) => {
           await this.resolveCommand(path.join(filePath, file))
         })
@@ -94,7 +94,7 @@ export class Client extends DiscordJsClient {
     }
 
     filePath.forEach(async (p: string) => {
-      const files: string[] = await walk(p)
+      const files: string[] = await this.walk(p)
       files.forEach(async (file: string) => {
         await this.resolveCommand(path.join(p, file))
       })
@@ -338,7 +338,7 @@ export class Client extends DiscordJsClient {
    */
   private async parseMessageAsCommand(msg: Message): Promise<void> {
     const prefix = this.getPrefixFromMessage(msg)
-    const withoutPrefix = msg.content.slice(prefix.length)
+    const withoutPrefix = msg.content.slice(prefix.length).trim()
     const split = withoutPrefix.split(' ')
     const commandName = split[0]
     const args = split.slice(1)
@@ -552,26 +552,28 @@ export class Client extends DiscordJsClient {
       }
     }
   }
-}
 
-// source: https://gist.github.com/kethinov/6658166#gistcomment-2733303
-/**
- * Gets all files in directory, recursively.
- */
-async function walk(dir: string): Promise<string[]> {
-  const files = await fs.readdir(dir)
-  const fileList: string[] = []
+  // source: https://gist.github.com/kethinov/6658166#gistcomment-2733303
+  /**
+   * Gets all files in directory, recursively.
+   */
+  private async walk(dir: string): Promise<string[]> {
+    const files = await fs.readdir(dir)
+    const fileList: string[] = []
 
-  for (const file of files) {
-    const filepath = path.join(dir, file)
-    const stat = await fs.stat(filepath)
+    for (const file of files) {
+      const filepath = path.join(dir, file)
+      const stat = await fs.stat(filepath)
 
-    if (stat.isDirectory()) {
-      fileList.push(...(await walk(filepath)).map(f => path.join(path.parse(filepath).base, f)))
-    } else {
-      fileList.push(file)
+      if (stat.isDirectory()) {
+        fileList.push(
+          ...(await this.walk(filepath)).map(f => path.join(path.parse(filepath).base, f))
+        )
+      } else {
+        fileList.push(file)
+      }
     }
-  }
 
-  return fileList
+    return fileList
+  }
 }
