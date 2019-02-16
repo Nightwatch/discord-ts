@@ -20,7 +20,7 @@
   "scripts": {
     "lint": "tslint  --project . --format stylish --fix",
     "prebuild": "rimraf dist",
-    "build": "tsc && typedoc --out docs --target es6 --theme node_modules/typedoc-vortex-theme/bin --mode file src",
+    "build": "tsc && typedoc --out docs --target es6 --theme node_modules/typedoc-vortex-theme/bin/minimal --mode file src",
     "precommit": "lint-staged",
     "test": "ts-node test/index.ts"
   },
