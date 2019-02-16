@@ -394,7 +394,11 @@ export class Client extends DiscordJsClient {
       return
     }
 
-    const instance: Command = new ResolvableCommand(this)
+    const instance = new ResolvableCommand(this) as Command
+
+    if (!instance) {
+      return
+    }
 
     this.registerCommand(instance)
   }
