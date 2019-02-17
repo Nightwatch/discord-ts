@@ -2426,7 +2426,7 @@ img {
 			<a href="globals.html#initdefaultcommandoptions" class="tsd-kind-icon">init<wbr>Default<wbr>Command<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-object-literal">
-			<a href="globals.html#defaultoptions" class="tsd-kind-icon">Default<wbr>Options</a>
+			<a href="globals.html#defaultclientoptions" class="tsd-kind-icon">Default<wbr>Client<wbr>Options</a>
 		</li>
 	</ul>
 </nav>
@@ -2464,6 +2464,14 @@ client.login(<span class="hljs-string">'&lt;Secret bot token&gt;'</span>).catch(
 client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'commands'</span>)).catch(<span class="hljs-built_in">console</span>.error)</code></pre>
 			<p>This method will find all commands within a directory and register them.</p>
 			<p>The directory may contain other files and non-commands. I will ignore those.</p>
+			<p>Discord.ts includes some base commands that you may find helpful. Register them before you register any custom commands:</p>
+			<pre><code class="language-ts">client.registerDefaultCommands().registerCommandsIn(path.join(__dirname, <span class="hljs-string">'commands'</span>))</code></pre>
+			<p>If any of your commands are named the same as a base command (or share an alias), your command will take precedence, overriding the base command.</p>
+			<p>You can also disable some of the default commands, by passing an object to the <code>registerDefaultCommands</code> method specifying which commands to disable:</p>
+			<pre><code class="language-ts">client.registerDefaultCommands({
+  help: <span class="hljs-literal">false</span>
+})</code></pre>
+			<p>Any default command you set to <code>false</code> will not be registered.</p>
 			<h3 id="creating-a-command">Creating a command</h3>
 			<p>Discord.ts comes with its own command framework, allowing you to create powerful commands very easily.</p>
 			<h4 id="hello-world-command">Hello world command</h4>
@@ -2490,17 +2498,77 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 			<p>Every command will have a minimum of two methods: the constructor and the <code>run</code> method.</p>
 			<ul>
 				<li>The constructor is used to define information about your command (e.g. the name, description, arguments, etc.).</li>
-				<li>The <code>run</code> method contains the logic you want to run when the command is executed.</li>
+				<li>The <code>run</code> method contains the logic you want to execute when the command is called.</li>
 			</ul>
-			<!-- TODO
+			<h4 id="adding-arguments">Adding arguments</h4>
+			<p>In many of your commands, you will want the user to provide values for the command to use. These are called command arguments.</p>
+			<p>Adding arguments to your commands is very simple.</p>
+			<p>Let&#39;s revise the HelloWorld command from previously to say &quot;Hello, {noun}!&quot; (e.g. &quot;Hello, Planet!&quot;, &quot;Hello, Universe!&quot;, etc.).</p>
+			<p>The new command will need a single argument.</p>
+			<p>An argument requires three properties:</p>
+			<ul>
+				<li>A unique <code>key</code> to label the argument.</li>
+				<li>A <code>phrase</code> which is used to prompt the user for a value.</li>
+				<li>The <code>type</code> of the argument, which is used to validate what the user types.<ul>
+						<li>Valid types are <code>&#39;user&#39;</code>, <code>&#39;number&#39;</code>, and <code>&#39;string&#39;</code></li>
+						<li>An argument can have a single type, or can be an array of types (e.g. <code>[ &#39;user&#39;, &#39;number&#39; ]</code>).</li>
+					</ul>
+				</li>
+			</ul>
+			<p>Here is the updated command:</p>
+			<pre><code class="language-ts"><span class="hljs-keyword">import</span> { Client, Message, Command } <span class="hljs-keyword">from</span> <span class="hljs-string">'discord.ts'</span>
 
-#### Adding arguments
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> HelloWorldCommand <span class="hljs-keyword">extends</span> Command {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">client</span>) {
+    <span class="hljs-keyword">super</span>(client, {
+      name: <span class="hljs-string">'helloworld'</span>,
+      description: <span class="hljs-string">'Greet the world.'</span>,
+      args: [
+        {
+          key: <span class="hljs-string">'noun'</span>,
+          phrase: <span class="hljs-string">'What, or who, do you want me to greet?'</span>,
+          <span class="hljs-keyword">type</span>: <span class="hljs-string">'string'</span>
+        }
+      ]
+    })
+  }
 
-#### Command permissions (hasPermission)
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> run(msg, args: { noun: <span class="hljs-built_in">string</span> }) {
+    <span class="hljs-keyword">await</span> msg.reply(<span class="hljs-string">`Hello, <span class="hljs-subst">${noun}</span>!`</span>)
+  }
+}</code></pre>
+			<p>Please note that the object property within the <code>run</code> method must be named exactly the same as the argument <code>key</code>, or it will throw a vague exception when the command is called.</p>
+			<h4 id="command-permissions-haspermission-">Command permissions (hasPermission)</h4>
+			<p>There will be some commands you don&#39;t want every user to be able to use (e.g. kick, ban, mute, etc.).</p>
+			<p>Discord.ts allows you to deny users access to these commands with the <code>hasPermission</code> method where you can require some conditions to be met in order for the user to be able to use the command (e.g. must require a certain permission, a certain role, etc.)</p>
+			<p>Let&#39;s revise the HelloWorld command once again to restrict the command to only be usable by users with the &quot;MANAGE_MESSAGES&quot; permission.</p>
+			<p>Here&#39;s the final command:</p>
+			<pre><code class="language-ts"><span class="hljs-keyword">import</span> { Client, Message, Command } <span class="hljs-keyword">from</span> <span class="hljs-string">'discord.ts'</span>
 
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">default</span> <span class="hljs-keyword">class</span> HelloWorldCommand <span class="hljs-keyword">extends</span> Command {
+  <span class="hljs-keyword">constructor</span>(<span class="hljs-params">client</span>) {
+    <span class="hljs-keyword">super</span>(client, {
+      name: <span class="hljs-string">'helloworld'</span>,
+      description: <span class="hljs-string">'Greet the world.'</span>,
+      args: [
+        {
+          key: <span class="hljs-string">'noun'</span>,
+          phrase: <span class="hljs-string">'What, or who, do you want me to greet?'</span>,
+          <span class="hljs-keyword">type</span>: <span class="hljs-string">'string'</span>
+        }
+      ],
+      guildOnly: <span class="hljs-literal">true</span>
+    })
+  }
 
+  <span class="hljs-keyword">public</span> hasPermission(msg) {
+    <span class="hljs-keyword">return</span> msg.member.permissions.has(<span class="hljs-string">'MANAGE_MESSAGES'</span>)
+  }
 
--->
+  <span class="hljs-keyword">public</span> <span class="hljs-keyword">async</span> run(msg, args: { noun: <span class="hljs-built_in">string</span> }) {
+    <span class="hljs-keyword">await</span> msg.reply(<span class="hljs-string">`Hello, <span class="hljs-subst">${noun}</span>!`</span>)
+  }
+}</code></pre>
 		</div>
 		<section class="tsd-panel-group tsd-index-group">
 			<h2>Index</h2>
@@ -2550,7 +2618,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<section class="tsd-index-section ">
 						<h3>Object literals</h3>
 						<ul class="tsd-index-list">
-							<li class="tsd-kind-object-literal"><a href="globals.html#defaultoptions" class="tsd-kind-icon">Default<wbr>Options</a></li>
+							<li class="tsd-kind-object-literal"><a href="globals.html#defaultclientoptions" class="tsd-kind-icon">Default<wbr>Client<wbr>Options</a></li>
 						</ul>
 					</section>
 				</div>
@@ -2564,7 +2632,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 				<div class="tsd-signature tsd-kind-icon">Logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BaseLogger</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> =&nbsp;P({prettyPrint: true,redact: {paths: [&#x27;hostname&#x27;, &#x27;pid&#x27;],remove: true},timestamp: false})</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/util/logger.ts#L3">util/logger.ts:3</a></li>
+						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/util/logger.ts#L3">util/logger.ts:3</a></li>
 					</ul>
 				</aside>
 			</section>
@@ -2581,7 +2649,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<li class="tsd-description">
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/default-command-options.ts#L15">model/default-command-options.ts:15</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-command-options.ts#L15">model/default-command-options.ts:15</a></li>
 							</ul>
 						</aside>
 						<h4 class="tsd-returns-title">Returns <a href="interfaces/defaultcommandoptions.html" class="tsd-signature-type">DefaultCommandOptions</a></h4>
@@ -2592,91 +2660,91 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 		<section class="tsd-panel-group tsd-member-group ">
 			<h2>Object literals</h2>
 			<section class="tsd-panel tsd-member tsd-kind-object-literal">
-				<a name="defaultoptions" class="tsd-anchor"></a>
-				<h3><span class="tsd-flag ts-flagConst">Const</span> Default<wbr>Options</h3>
-				<div class="tsd-signature tsd-kind-icon">Default<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
+				<a name="defaultclientoptions" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagConst">Const</span> Default<wbr>Client<wbr>Options</h3>
+				<div class="tsd-signature tsd-kind-icon">Default<wbr>Client<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L3">model/constants.ts:3</a></li>
+						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L3">model/default-client-options.ts:3</a></li>
 					</ul>
 				</aside>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.disableeveryone" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.disableeveryone" class="tsd-anchor"></a>
 					<h3>disable<wbr>Everyone</h3>
 					<div class="tsd-signature tsd-kind-icon">disable<wbr>Everyone<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L4">model/constants.ts:4</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L4">model/default-client-options.ts:4</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.disabledevents" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.disabledevents" class="tsd-anchor"></a>
 					<h3>disabled<wbr>Events</h3>
 					<div class="tsd-signature tsd-kind-icon">disabled<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L5">model/constants.ts:5</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L5">model/default-client-options.ts:5</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.fetchallmembers" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.fetchallmembers" class="tsd-anchor"></a>
 					<h3>fetch<wbr>All<wbr>Members</h3>
 					<div class="tsd-signature tsd-kind-icon">fetch<wbr>All<wbr>Members<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L6">model/constants.ts:6</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L6">model/default-client-options.ts:6</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.messagecachelifetime" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.messagecachelifetime" class="tsd-anchor"></a>
 					<h3>message<wbr>Cache<wbr>Lifetime</h3>
 					<div class="tsd-signature tsd-kind-icon">message<wbr>Cache<wbr>Lifetime<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L7">model/constants.ts:7</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L7">model/default-client-options.ts:7</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.messagecachemaxsize" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.messagecachemaxsize" class="tsd-anchor"></a>
 					<h3>message<wbr>Cache<wbr>Max<wbr>Size</h3>
 					<div class="tsd-signature tsd-kind-icon">message<wbr>Cache<wbr>Max<wbr>Size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;200</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L8">model/constants.ts:8</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L8">model/default-client-options.ts:8</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.messagesweepinterval" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.messagesweepinterval" class="tsd-anchor"></a>
 					<h3>message<wbr>Sweep<wbr>Interval</h3>
 					<div class="tsd-signature tsd-kind-icon">message<wbr>Sweep<wbr>Interval<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L9">model/constants.ts:9</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L9">model/default-client-options.ts:9</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.partials" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.partials" class="tsd-anchor"></a>
 					<h3>partials</h3>
 					<div class="tsd-signature tsd-kind-icon">partials<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L26">model/constants.ts:26</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L26">model/default-client-options.ts:26</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.presence" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.presence" class="tsd-anchor"></a>
 					<h3>presence</h3>
 					<div class="tsd-signature tsd-kind-icon">presence<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L10">model/constants.ts:10</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L10">model/default-client-options.ts:10</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -2686,131 +2754,131 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					</div>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.resttimeoffset" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.resttimeoffset" class="tsd-anchor"></a>
 					<h3>rest<wbr>Time<wbr>Offset</h3>
 					<div class="tsd-signature tsd-kind-icon">rest<wbr>Time<wbr>Offset<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;500</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L11">model/constants.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L11">model/default-client-options.ts:11</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.restwsbridgetimeout" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.restwsbridgetimeout" class="tsd-anchor"></a>
 					<h3>rest<wbr>WsBridge<wbr>Timeout</h3>
 					<div class="tsd-signature tsd-kind-icon">rest<wbr>WsBridge<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;5000</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L12">model/constants.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L12">model/default-client-options.ts:12</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.retrylimit" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.retrylimit" class="tsd-anchor"></a>
 					<h3>retry<wbr>Limit</h3>
 					<div class="tsd-signature tsd-kind-icon">retry<wbr>Limit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L13">model/constants.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L13">model/default-client-options.ts:13</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.shardcount" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.shardcount" class="tsd-anchor"></a>
 					<h3>shard<wbr>Count</h3>
 					<div class="tsd-signature tsd-kind-icon">shard<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L14">model/constants.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L14">model/default-client-options.ts:14</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-					<a name="defaultoptions.totalshardcount" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.totalshardcount" class="tsd-anchor"></a>
 					<h3>total<wbr>Shard<wbr>Count</h3>
 					<div class="tsd-signature tsd-kind-icon">total<wbr>Shard<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L15">model/constants.ts:15</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L15">model/default-client-options.ts:15</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-object-literal tsd-parent-kind-object-literal">
-					<a name="defaultoptions.http" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.http" class="tsd-anchor"></a>
 					<h3>http</h3>
 					<div class="tsd-signature tsd-kind-icon">http<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L16">model/constants.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L16">model/default-client-options.ts:16</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="defaultoptions.http.cdn" class="tsd-anchor"></a>
+						<a name="defaultclientoptions.http.cdn" class="tsd-anchor"></a>
 						<h3>cdn</h3>
 						<div class="tsd-signature tsd-kind-icon">cdn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://cdn.discordapp.com&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L18">model/constants.ts:18</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L18">model/default-client-options.ts:18</a></li>
 							</ul>
 						</aside>
 					</section>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="defaultoptions.http.host" class="tsd-anchor"></a>
+						<a name="defaultclientoptions.http.host" class="tsd-anchor"></a>
 						<h3>host</h3>
 						<div class="tsd-signature tsd-kind-icon">host<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://discordapp.com/api&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L17">model/constants.ts:17</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L17">model/default-client-options.ts:17</a></li>
 							</ul>
 						</aside>
 					</section>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="defaultoptions.http.invite" class="tsd-anchor"></a>
+						<a name="defaultclientoptions.http.invite" class="tsd-anchor"></a>
 						<h3>invite</h3>
 						<div class="tsd-signature tsd-kind-icon">invite<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://discord.gg&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L19">model/constants.ts:19</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L19">model/default-client-options.ts:19</a></li>
 							</ul>
 						</aside>
 					</section>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="defaultoptions.http.version" class="tsd-anchor"></a>
+						<a name="defaultclientoptions.http.version" class="tsd-anchor"></a>
 						<h3>version</h3>
 						<div class="tsd-signature tsd-kind-icon">version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;7</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L20">model/constants.ts:20</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L20">model/default-client-options.ts:20</a></li>
 							</ul>
 						</aside>
 					</section>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-object-literal tsd-parent-kind-object-literal">
-					<a name="defaultoptions.ws" class="tsd-anchor"></a>
+					<a name="defaultclientoptions.ws" class="tsd-anchor"></a>
 					<h3>ws</h3>
 					<div class="tsd-signature tsd-kind-icon">ws<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L22">model/constants.ts:22</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L22">model/default-client-options.ts:22</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="defaultoptions.ws.compress" class="tsd-anchor"></a>
+						<a name="defaultclientoptions.ws.compress" class="tsd-anchor"></a>
 						<h3>compress</h3>
 						<div class="tsd-signature tsd-kind-icon">compress<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L23">model/constants.ts:23</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L23">model/default-client-options.ts:23</a></li>
 							</ul>
 						</aside>
 					</section>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
-						<a name="defaultoptions.ws.large_threshold" class="tsd-anchor"></a>
+						<a name="defaultclientoptions.ws.large_threshold" class="tsd-anchor"></a>
 						<h3>large_<wbr>threshold</h3>
 						<div class="tsd-signature tsd-kind-icon">large_<wbr>threshold<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;250</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L24">model/constants.ts:24</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/8e8ec92/src/model/default-client-options.ts#L24">model/default-client-options.ts:24</a></li>
 							</ul>
 						</aside>
 					</section>
