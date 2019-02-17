@@ -2395,6 +2395,9 @@ img {
 		<li class=" tsd-kind-class">
 			<a href="classes/messageembed.html" class="tsd-kind-icon">Message<wbr>Embed</a>
 		</li>
+		<li class=" tsd-kind-class">
+			<a href="classes/unknowncommand.html" class="tsd-kind-icon">Unknown<wbr>Command</a>
+		</li>
 		<li class=" tsd-kind-interface">
 			<a href="interfaces/argument.html" class="tsd-kind-icon">Argument</a>
 		</li>
@@ -2408,10 +2411,19 @@ img {
 			<a href="interfaces/commandoptions.html" class="tsd-kind-icon">Command<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-interface">
+			<a href="interfaces/defaultcommandoptions.html" class="tsd-kind-icon">Default<wbr>Command<wbr>Options</a>
+		</li>
+		<li class=" tsd-kind-interface">
 			<a href="interfaces/helpcommandargument.html" class="tsd-kind-icon">Help<wbr>Command<wbr>Argument</a>
+		</li>
+		<li class=" tsd-kind-interface tsd-is-not-exported">
+			<a href="interfaces/unknowncommandargs.html" class="tsd-kind-icon">Unknown<wbr>Command<wbr>Args</a>
 		</li>
 		<li class=" tsd-kind-variable tsd-is-not-exported">
 			<a href="globals.html#logger" class="tsd-kind-icon">Logger</a>
+		</li>
+		<li class=" tsd-kind-function">
+			<a href="globals.html#initdefaultcommandoptions" class="tsd-kind-icon">init<wbr>Default<wbr>Command<wbr>Options</a>
 		</li>
 		<li class=" tsd-kind-object-literal">
 			<a href="globals.html#defaultoptions" class="tsd-kind-icon">Default<wbr>Options</a>
@@ -2509,6 +2521,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 							<li class="tsd-kind-class"><a href="classes/helpcommand.html" class="tsd-kind-icon">Help<wbr>Command</a></li>
 							<li class="tsd-kind-class"><a href="classes/message.html" class="tsd-kind-icon">Message</a></li>
 							<li class="tsd-kind-class"><a href="classes/messageembed.html" class="tsd-kind-icon">Message<wbr>Embed</a></li>
+							<li class="tsd-kind-class"><a href="classes/unknowncommand.html" class="tsd-kind-icon">Unknown<wbr>Command</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -2518,13 +2531,21 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 							<li class="tsd-kind-interface"><a href="interfaces/argumenttype.html" class="tsd-kind-icon">Argument<wbr>Type</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/clientoptions.html" class="tsd-kind-icon">Client<wbr>Options</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/commandoptions.html" class="tsd-kind-icon">Command<wbr>Options</a></li>
+							<li class="tsd-kind-interface"><a href="interfaces/defaultcommandoptions.html" class="tsd-kind-icon">Default<wbr>Command<wbr>Options</a></li>
 							<li class="tsd-kind-interface"><a href="interfaces/helpcommandargument.html" class="tsd-kind-icon">Help<wbr>Command<wbr>Argument</a></li>
+							<li class="tsd-kind-interface tsd-is-not-exported"><a href="interfaces/unknowncommandargs.html" class="tsd-kind-icon">Unknown<wbr>Command<wbr>Args</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section tsd-is-not-exported">
 						<h3>Variables</h3>
 						<ul class="tsd-index-list">
 							<li class="tsd-kind-variable tsd-is-not-exported"><a href="globals.html#logger" class="tsd-kind-icon">Logger</a></li>
+						</ul>
+					</section>
+					<section class="tsd-index-section ">
+						<h3>Functions</h3>
+						<ul class="tsd-index-list">
+							<li class="tsd-kind-function"><a href="globals.html#initdefaultcommandoptions" class="tsd-kind-icon">init<wbr>Default<wbr>Command<wbr>Options</a></li>
 						</ul>
 					</section>
 					<section class="tsd-index-section ">
@@ -2544,9 +2565,29 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 				<div class="tsd-signature tsd-kind-icon">Logger<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">BaseLogger</span><span class="tsd-signature-symbol"> &amp; </span><span class="tsd-signature-type">object</span><span class="tsd-signature-symbol"> =&nbsp;P({prettyPrint: true,redact: {paths: [&#x27;hostname&#x27;, &#x27;pid&#x27;],remove: true},timestamp: false})</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/util/logger.ts#L3">util/logger.ts:3</a></li>
+						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/util/logger.ts#L3">util/logger.ts:3</a></li>
 					</ul>
 				</aside>
+			</section>
+		</section>
+		<section class="tsd-panel-group tsd-member-group ">
+			<h2>Functions</h2>
+			<section class="tsd-panel tsd-member tsd-kind-function">
+				<a name="initdefaultcommandoptions" class="tsd-anchor"></a>
+				<h3><span class="tsd-flag ts-flagConst">Const</span> init<wbr>Default<wbr>Command<wbr>Options</h3>
+				<ul class="tsd-signatures tsd-kind-function">
+					<li class="tsd-signature tsd-kind-icon">init<wbr>Default<wbr>Command<wbr>Options<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="interfaces/defaultcommandoptions.html" class="tsd-signature-type">DefaultCommandOptions</a></li>
+				</ul>
+				<ul class="tsd-descriptions">
+					<li class="tsd-description">
+						<aside class="tsd-sources">
+							<ul>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/default-command-options.ts#L15">model/default-command-options.ts:15</a></li>
+							</ul>
+						</aside>
+						<h4 class="tsd-returns-title">Returns <a href="interfaces/defaultcommandoptions.html" class="tsd-signature-type">DefaultCommandOptions</a></h4>
+					</li>
+				</ul>
 			</section>
 		</section>
 		<section class="tsd-panel-group tsd-member-group ">
@@ -2557,7 +2598,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 				<div class="tsd-signature tsd-kind-icon">Default<wbr>Options<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 				<aside class="tsd-sources">
 					<ul>
-						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L3">model/constants.ts:3</a></li>
+						<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L3">model/constants.ts:3</a></li>
 					</ul>
 				</aside>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -2566,7 +2607,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">disable<wbr>Everyone<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L4">model/constants.ts:4</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L4">model/constants.ts:4</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2576,7 +2617,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">disabled<wbr>Events<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L5">model/constants.ts:5</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L5">model/constants.ts:5</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2586,7 +2627,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">fetch<wbr>All<wbr>Members<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L6">model/constants.ts:6</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L6">model/constants.ts:6</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2596,7 +2637,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">message<wbr>Cache<wbr>Lifetime<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L7">model/constants.ts:7</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L7">model/constants.ts:7</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2606,7 +2647,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">message<wbr>Cache<wbr>Max<wbr>Size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;200</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L8">model/constants.ts:8</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L8">model/constants.ts:8</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2616,7 +2657,17 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">message<wbr>Sweep<wbr>Interval<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;0</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L9">model/constants.ts:9</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L9">model/constants.ts:9</a></li>
+						</ul>
+					</aside>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
+					<a name="defaultoptions.partials" class="tsd-anchor"></a>
+					<h3>partials</h3>
+					<div class="tsd-signature tsd-kind-icon">partials<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">never</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol"> =&nbsp;[]</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L26">model/constants.ts:26</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2626,7 +2677,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">presence<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L10">model/constants.ts:10</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L10">model/constants.ts:10</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -2641,7 +2692,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">rest<wbr>Time<wbr>Offset<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;500</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L11">model/constants.ts:11</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L11">model/constants.ts:11</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2651,7 +2702,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">rest<wbr>WsBridge<wbr>Timeout<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;5000</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L12">model/constants.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L12">model/constants.ts:12</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2661,7 +2712,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">retry<wbr>Limit<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L13">model/constants.ts:13</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L13">model/constants.ts:13</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2671,7 +2722,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">shard<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L14">model/constants.ts:14</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L14">model/constants.ts:14</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2681,7 +2732,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">total<wbr>Shard<wbr>Count<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;1</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L15">model/constants.ts:15</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L15">model/constants.ts:15</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -2691,7 +2742,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">http<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L16">model/constants.ts:16</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L16">model/constants.ts:16</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -2700,7 +2751,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 						<div class="tsd-signature tsd-kind-icon">cdn<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://cdn.discordapp.com&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L18">model/constants.ts:18</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L18">model/constants.ts:18</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -2710,7 +2761,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 						<div class="tsd-signature tsd-kind-icon">host<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://discordapp.com/api&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L17">model/constants.ts:17</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L17">model/constants.ts:17</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -2720,7 +2771,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 						<div class="tsd-signature tsd-kind-icon">invite<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">string</span><span class="tsd-signature-symbol"> =&nbsp;&quot;https://discord.gg&quot;</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L19">model/constants.ts:19</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L19">model/constants.ts:19</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -2730,7 +2781,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 						<div class="tsd-signature tsd-kind-icon">version<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;7</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L20">model/constants.ts:20</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L20">model/constants.ts:20</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -2741,7 +2792,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 					<div class="tsd-signature tsd-kind-icon">ws<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">object</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L22">model/constants.ts:22</a></li>
+							<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L22">model/constants.ts:22</a></li>
 						</ul>
 					</aside>
 					<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-object-literal">
@@ -2750,7 +2801,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 						<div class="tsd-signature tsd-kind-icon">compress<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">false</span><span class="tsd-signature-symbol"> =&nbsp;false</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L23">model/constants.ts:23</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L23">model/constants.ts:23</a></li>
 							</ul>
 						</aside>
 					</section>
@@ -2760,7 +2811,7 @@ client.registerCommandsIn(path.join(__dirname, <span class="hljs-string">'comman
 						<div class="tsd-signature tsd-kind-icon">large_<wbr>threshold<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span><span class="tsd-signature-symbol"> =&nbsp;250</span></div>
 						<aside class="tsd-sources">
 							<ul>
-								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/b716cfb/src/model/constants.ts#L24">model/constants.ts:24</a></li>
+								<li>Defined in <a href="https://github.com/Nightwatch/commando-lite/blob/de1fce0/src/model/constants.ts#L24">model/constants.ts:24</a></li>
 							</ul>
 						</aside>
 					</section>
