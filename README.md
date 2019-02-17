@@ -47,6 +47,24 @@ This method will find all commands within a directory and register them.
 
 The directory may contain other files and non-commands. I will ignore those.
 
+Discord.ts includes some base commands that you may find helpful. Register them before you register any custom commands:
+
+```ts
+client.registerDefaultCommands().registerCommandsIn(path.join(__dirname, 'commands'))
+```
+
+If any of your commands are named the same as a base command (or share an alias), your command will take precedence, overriding the base command.
+
+You can also disable some of the default commands, by passing an object to the `registerDefaultCommands` method specifying which commands to disable:
+
+```ts
+client.registerDefaultCommands({
+  help: false
+})
+```
+
+Any default command you set to `false` will not be registered.
+
 ### Creating a command
 
 Discord.ts comes with its own command framework, allowing you to create powerful commands very easily.
@@ -85,14 +103,89 @@ They need to be set to `export default` so the command framework knows to import
 Every command will have a minimum of two methods: the constructor and the `run` method.
 
 - The constructor is used to define information about your command (e.g. the name, description, arguments, etc.).
-- The `run` method contains the logic you want to run when the command is executed.
-
-<!-- TODO
+- The `run` method contains the logic you want to execute when the command is called.
 
 #### Adding arguments
 
+In many of your commands, you will want the user to provide values for the command to use. These are called command arguments.
+
+Adding arguments to your commands is very simple.
+
+Let's revise the HelloWorld command from previously to say "Hello, {noun}!" (e.g. "Hello, Planet!", "Hello, Universe!", etc.).
+
+The new command will need a single argument.
+
+An argument requires three properties:
+
+- A unique `key` to label the argument.
+- A `phrase` which is used to prompt the user for a value.
+- The `type` of the argument, which is used to validate what the user types.
+  - Valid types are `'user'`, `'number'`, and `'string'`
+  - An argument can have a single type, or can be an array of types (e.g. `[ 'user', 'number' ]`).
+
+Here is the updated command:
+
+```ts
+import { Client, Message, Command } from 'discord.ts'
+
+export default class HelloWorldCommand extends Command {
+  constructor(client) {
+    super(client, {
+      name: 'helloworld',
+      description: 'Greet the world.',
+      args: [
+        {
+          key: 'noun',
+          phrase: 'What, or who, do you want me to greet?',
+          type: 'string'
+        }
+      ]
+    })
+  }
+
+  public async run(msg, args: { noun: string }) {
+    await msg.reply(`Hello, ${noun}!`)
+  }
+}
+```
+
+Please note that the object property within the `run` method must be named exactly the same as the argument `key`, or it will throw a vague exception when the command is called.
+
 #### Command permissions (hasPermission)
 
+There will be some commands you don't want every user to be able to use (e.g. kick, ban, mute, etc.).
 
+Discord.ts allows you to deny users access to these commands with the `hasPermission` method where you can require some conditions to be met in order for the user to be able to use the command (e.g. must require a certain permission, a certain role, etc.)
 
--->
+Let's revise the HelloWorld command once again to restrict the command to only be usable by users with the "MANAGE_MESSAGES" permission.
+
+Here's the final command:
+
+```ts
+import { Client, Message, Command } from 'discord.ts'
+
+export default class HelloWorldCommand extends Command {
+  constructor(client) {
+    super(client, {
+      name: 'helloworld',
+      description: 'Greet the world.',
+      args: [
+        {
+          key: 'noun',
+          phrase: 'What, or who, do you want me to greet?',
+          type: 'string'
+        }
+      ],
+      guildOnly: true
+    })
+  }
+
+  public hasPermission(msg) {
+    return msg.member.permissions.has('MANAGE_MESSAGES')
+  }
+
+  public async run(msg, args: { noun: string }) {
+    await msg.reply(`Hello, ${noun}!`)
+  }
+}
+```
