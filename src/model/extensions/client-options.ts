@@ -1,5 +1,10 @@
 import { ClientOptions as DiscordJsClientOptions, ColorResolvable } from 'discord.js'
 
+/**
+ * Extension of the Discord.js ClientOptions
+ *
+ * @see https://discord.js.org/#/docs/main/master/typedef/ClientOptions
+ */
 export interface ClientOptions extends DiscordJsClientOptions {
   /**
    * The main color of your bot. Will be used in some built in commands.

@@ -5,6 +5,8 @@ import { Client } from './client'
  * Extension of the Discord.js MessageEmbed.
  *
  * Sets default values make implementation easier.
+ *
+ * @see https://discord.js.org/#/docs/main/master/class/MessageEmbed
  */
 export class MessageEmbed extends DiscordJsMessageEmbed {
   /**

@@ -4,6 +4,8 @@ import { Command } from '../command'
 
 /**
  * Subclass of the Discord.js Message class.
+ *
+ * @see https://discord.js.org/#/docs/main/master/class/Message
  */
 export class Message extends DiscordJsMessage {
   /**

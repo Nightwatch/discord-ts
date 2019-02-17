@@ -12,6 +12,8 @@ import { DefaultCommandOptions, initDefaultCommandOptions } from '../default-com
  * Extension of the Discord.js Client.
  *
  * Contains extra methods and properties for managing commands.
+ *
+ * @see https://discord.js.org/#/docs/main/master/class/Client
  */
 export class Client extends DiscordJsClient {
   /**
