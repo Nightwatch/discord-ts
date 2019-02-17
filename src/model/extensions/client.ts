@@ -1,11 +1,12 @@
 import { Client as DiscordJsClient, Guild, GuildMember, Util, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
-import { HelpCommand } from '../../commands'
+import { HelpCommand, UnknownCommand } from '../../commands'
 import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
 import { DefaultOptions } from '../constants'
 import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 import { Logger } from '../../util'
+import { DefaultCommandOptions, initDefaultCommandOptions } from '../default-command-options'
 
 /**
  * Extension of the Discord.js Client.
@@ -67,7 +68,7 @@ export class Client extends DiscordJsClient {
     this.commands.set(command.options.name, command)
 
     if (command.options.unknown) {
-      if (this.unknownCommand) {
+      if (this.unknownCommand && !this.unknownCommand.options.default) {
         throw new TypeError(
           `Command ${this.unknownCommand.options.name} is already the unknown command, ${
             command.options.name
@@ -106,9 +107,17 @@ export class Client extends DiscordJsClient {
    *
    * @param options Allows you to disable certain default commands.
    */
-  public registerDefaultCommands(options = { help: true }): void {
-    if (options.help) {
+  public registerDefaultCommands(
+    options: DefaultCommandOptions = initDefaultCommandOptions()
+  ): void {
+    const mergedSettings = {...initDefaultCommandOptions(), ...options}
+
+    if (mergedSettings.help) {
       this.registerCommand(new HelpCommand(this))
+    }
+
+    if (mergedSettings.unknown) {
+      this.registerCommand(new UnknownCommand(this))
     }
   }
 
@@ -175,6 +184,12 @@ export class Client extends DiscordJsClient {
     const commandSameName = Command.find(this, command.options.name)
 
     if (commandSameName) {
+      if(commandSameName.options.default) {
+        this.commands.delete(commandSameName.options.name)
+
+        return;
+      }
+
       this.failDuplicate(command, commandSameName)
     }
 
@@ -186,6 +201,12 @@ export class Client extends DiscordJsClient {
       const commandSameAlias = Command.find(this, alias)
 
       if (commandSameAlias) {
+        if(commandSameAlias.options.default) {
+          this.commands.delete(commandSameAlias.options.name)
+
+          return;
+        }
+
         this.failDuplicate(command, commandSameAlias)
       }
     }

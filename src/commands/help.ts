@@ -13,7 +13,7 @@ export class HelpCommand extends Command {
       aliases: ['h', 'commands', 'cmds'],
       description: 'Shows the names and descriptions of all commands, and for certain commands.',
       name: 'help',
-
+      default: true,
       args: [
         {
           key: 'commandArg',
@@ -44,35 +44,6 @@ export class HelpCommand extends Command {
     }
 
     return this.showHelp(msg, embed, args.commandArg === 'all')
-  }
-
-  /**
-   * Helper method to get the embed description
-   *
-   * @param msg - The Message from the command
-   */
-  private getDescription(msg: Message): string {
-    const tag = this.client.user ? `@${this.client.user.tag}` : ''
-    const guild = msg.guild ? msg.guild.name : ''
-    const prefix = this.getPrefix()
-
-    let description = `Use \`${prefix}command\` or \`${tag} command\` to run a command. For example, \`${prefix}help\` or \`${tag} help\`.\n`
-    description += `To run a command in DMs with me, use \`command\` with no prefix.\n\n`
-    description += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
-    description += guild
-      ? `__**Available commands in ${guild}**__\n\n`
-      : '__**Available commands**__\n\n'
-
-    return description
-  }
-
-  /**
-   * Helper method to get the command prefix
-   */
-  private getPrefix(): string {
-    return typeof this.client.options.commandPrefix === 'string'
-      ? this.client.options.commandPrefix
-      : this.client.options.commandPrefix[0]
   }
 
   /**
@@ -111,6 +82,26 @@ export class HelpCommand extends Command {
   }
 
   /**
+   * Helper method to get the embed description
+   *
+   * @param msg - The Message from the command
+   */
+  private getDescription(msg: Message): string {
+    const tag = this.client.user ? `@${this.client.user.tag}` : ''
+    const guild = msg.guild ? msg.guild.name : ''
+    const prefix = this.getPrefix()
+
+    let description = `Use \`${prefix}command\` or \`${tag} command\` to run a command. For example, \`${prefix}help\` or \`${tag} help\`.\n`
+    description += `To run a command in DMs with me, use \`command\` with no prefix.\n\n`
+    description += `Use \`help all\` to view a list of *all* commands, not just available ones.\n\n`
+    description += guild
+      ? `__**Available commands in ${guild}**__\n\n`
+      : '__**Available commands**__\n\n'
+
+    return description
+  }
+
+  /**
    * Tells the user about a single command, rather than all of them.
    * @param msg The message sent by the user.
    * @param embed The embed to send with the message.
@@ -140,6 +131,15 @@ export class HelpCommand extends Command {
       .addField('Aliases', aliases)
 
     await msg.author.send({ embed })
+  }
+
+  /**
+   * Helper method to get the command prefix
+   */
+  private getPrefix(): string {
+    return typeof this.client.options.commandPrefix === 'string'
+      ? this.client.options.commandPrefix
+      : this.client.options.commandPrefix[0]
   }
 }
 

@@ -3,7 +3,8 @@
     "tslint:all",
     "tslint-config-standard",
     "tslint-config-prettier",
-    "tslint-sonarts"
+    "tslint-sonarts",
+    "tslint-clean-code"
   ],
   "rules": {
     "file-name-casing": [true, "kebab-case"],
@@ -23,6 +24,8 @@
     "ordered-imports": false,
     "curly": true,
     "object-literal-sort-keys": false,
-    "no-submodule-imports": false
+    "no-submodule-imports": false,
+    "newspaper-order": true,
+    "member-ordering": false
   }
 }

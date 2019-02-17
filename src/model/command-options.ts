@@ -14,6 +14,11 @@ export interface CommandOptions {
   args?: Argument[]
 
   /**
+   * Specifies that the command is a default command from Discord.ts, allowing the command to be overidden.
+   */
+  default?: boolean
+
+  /**
    * A description of the command so others know what it does.
    */
   description: string

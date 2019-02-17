@@ -60,6 +60,7 @@
     "ts-jest": "^23.10.2",
     "ts-node": "^8.0.2",
     "tslint": "^5.11.0",
+    "tslint-clean-code": "^0.2.9",
     "tslint-config-prettier": "^1.15.0",
     "tslint-config-standard": "^8.0.1",
     "tslint-sonarts": "^1.9.0",
@@ -68,7 +69,7 @@
     "typescript": "^3.0.3"
   },
   "dependencies": {
-    "discord.js": "https://github.com/discordjs/discord.js#0564c5c777cfd2391261417a2047d4d7f92474ca",
+    "discord.js": "discordjs/discord.js",
     "pino": "^5.11.1",
     "pino-pretty": "^2.5.0",
     "purify-ts": "^0.12.2"
