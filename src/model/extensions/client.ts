@@ -95,10 +95,7 @@ export class Client extends DiscordJsClient {
     }
 
     filePath.forEach(async (p: string) => {
-      const files: string[] = await this.walk(p)
-      files.forEach(async (file: string) => {
-        await this.resolveCommand(path.join(p, file))
-      })
+      await this.registerCommandsIn(p)
     })
   }
 
@@ -107,10 +104,8 @@ export class Client extends DiscordJsClient {
    *
    * @param options Allows you to disable certain default commands.
    */
-  public registerDefaultCommands(
-    options: DefaultCommandOptions = initDefaultCommandOptions()
-  ): void {
-    const mergedSettings = {...initDefaultCommandOptions(), ...options}
+  public registerDefaultCommands(options: DefaultCommandOptions = {}): void {
+    const mergedSettings = { ...initDefaultCommandOptions(), ...options }
 
     if (mergedSettings.help) {
       this.registerCommand(new HelpCommand(this))
@@ -184,10 +179,10 @@ export class Client extends DiscordJsClient {
     const commandSameName = Command.find(this, command.options.name)
 
     if (commandSameName) {
-      if(commandSameName.options.default) {
+      if (commandSameName.options.default) {
         this.commands.delete(commandSameName.options.name)
 
-        return;
+        return
       }
 
       this.failDuplicate(command, commandSameName)
@@ -201,10 +196,10 @@ export class Client extends DiscordJsClient {
       const commandSameAlias = Command.find(this, alias)
 
       if (commandSameAlias) {
-        if(commandSameAlias.options.default) {
+        if (commandSameAlias.options.default) {
           this.commands.delete(commandSameAlias.options.name)
 
-          return;
+          return
         }
 
         this.failDuplicate(command, commandSameAlias)
