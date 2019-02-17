@@ -1,6 +1,6 @@
 import { ClientOptions } from 'discord.js'
 
-export const DefaultOptions: ClientOptions = {
+export const DefaultClientOptions: ClientOptions = {
   disableEveryone: false,
   disabledEvents: [],
   fetchAllMembers: false,

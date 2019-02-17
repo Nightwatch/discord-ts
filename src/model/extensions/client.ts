@@ -3,7 +3,7 @@ import { promises as fs } from 'fs'
 import * as path from 'path'
 import { HelpCommand, UnknownCommand } from '../../commands'
 import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
-import { DefaultOptions } from '../constants'
+import { DefaultClientOptions } from '../default-client-options'
 import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 import { Logger } from '../../util'
 import { DefaultCommandOptions, initDefaultCommandOptions } from '../default-command-options'
@@ -32,7 +32,7 @@ export class Client extends DiscordJsClient {
   public unknownCommand?: Command
 
   public constructor(options: ClientOptions) {
-    super(Util.mergeDefault(DefaultOptions, options))
+    super(Util.mergeDefault(DefaultClientOptions, options))
 
     this.options = options
 
