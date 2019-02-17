@@ -236,18 +236,20 @@ export class Client extends DiscordJsClient {
    * @param msg - The CommandMessage representing the user's message
    */
   private getPrefixFromMessage(msg: Message): string {
+    if (msg.channel.type === 'dm') {
+      return ''
+    }
+
+    if (typeof this.options.commandPrefix === 'string') {
+      return this.options.commandPrefix
+    }
+
     let prefix = ''
 
-    if (msg.channel.type === 'dm') {
-      prefix = ''
-    } else if (typeof this.options.commandPrefix === 'string') {
-      prefix = this.options.commandPrefix
-    } else {
-      for (const prefixOption of this.options.commandPrefix) {
-        if (msg.content.startsWith(prefixOption)) {
-          prefix = prefixOption
-          break
-        }
+    for (const prefixOption of this.options.commandPrefix) {
+      if (msg.content.startsWith(prefixOption)) {
+        prefix = prefixOption
+        break
       }
     }
 
@@ -280,15 +282,17 @@ export class Client extends DiscordJsClient {
    * @param command - The command object.
    * @param args - The formatted argument string array.
    */
-  private mapArgsToObject(msg: Message, args: string[]): object | undefined {
-    if (!msg.command || !msg.command.options.args) {
-      return undefined
-    }
-
-    return msg.command.options.args.reduce(
-      (_, c, i) => ({ [c.key]: this.convertArgToType(args[i], c.type, msg.guild) }),
-      {}
-    )
+  private mapArgsToObject(msg: Message, args: string[]): Maybe<object> {
+    return Maybe.fromNullable(msg.command)
+      .chainNullable(command => command.options.args)
+      .map(commandArgs =>
+        commandArgs.map((argument, index) => ({
+          [argument.key]: this.convertArgToType(args[index], argument.type, msg.guild).extract()
+        }))
+      )
+      .map(keyValueArray =>
+        keyValueArray.reduce((occumulator, value) => ({ ...occumulator, ...value }), {})
+      )
   }
 
   /**
@@ -364,7 +368,7 @@ export class Client extends DiscordJsClient {
       return this.runCommandWithArgs(msg, args)
     }
 
-    return this.runCommand(msg)
+    return this.runCommand(msg, Nothing)
   }
 
   // tslint:disable: no-unsafe-any
@@ -407,7 +411,7 @@ export class Client extends DiscordJsClient {
    * @param command - The command object to be ran.
    * @param args - Command args.
    */
-  private async runCommand(msg: Message, args?: object): Promise<void> {
+  private async runCommand(msg: Message, args: Maybe<object>): Promise<void> {
     if (!msg.command) {
       return
     }
@@ -420,7 +424,9 @@ export class Client extends DiscordJsClient {
       return
     }
 
-    await msg.command.run(msg, args).catch(async (err: Error) => this.handleCommandError(msg, err))
+    await msg.command
+      .run(msg, args.extract())
+      .catch(async (err: Error) => this.handleCommandError(msg, err))
   }
 
   /**
@@ -436,7 +442,7 @@ export class Client extends DiscordJsClient {
     }
 
     if (!msg.command.options.args) {
-      return this.runCommand(msg)
+      return this.runCommand(msg, Nothing)
     }
 
     const required = msg.command.options.args.filter(arg => !arg.optional)
