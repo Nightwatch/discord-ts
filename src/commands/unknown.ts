@@ -11,6 +11,7 @@ export class UnknownCommand extends Command {
     super(client, {
       name: 'unknown',
       description: 'Acts as a response to unknown commands.',
+      group: 'info',
       unknown: true,
       default: true,
       args: [

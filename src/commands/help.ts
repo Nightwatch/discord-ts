@@ -13,6 +13,7 @@ export class HelpCommand extends Command {
       aliases: ['h', 'commands', 'cmds'],
       description: 'Shows the names and descriptions of all commands, and for certain commands.',
       name: 'help',
+      group: 'info',
       default: true,
       args: [
         {

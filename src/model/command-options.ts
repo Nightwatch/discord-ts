@@ -24,6 +24,15 @@ export interface CommandOptions {
   description: string
 
   /**
+   * The group the command belongs to.
+   *
+   * A command group helps to organize your commands by grouping commands of similar functionality.
+   *
+   * Some examples are `games`, `admin`, `debug`, etc.
+   */
+  group?: string
+
+  /**
    * Whether or not the command is only usable in guilds.
    */
   guildOnly?: boolean
