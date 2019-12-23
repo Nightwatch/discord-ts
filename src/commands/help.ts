@@ -78,9 +78,27 @@ export class HelpCommand extends Command {
     await msg.author.send({ embed })
   }
 
+  /**
+   * Gets the content in a field for the help command.
+   * Will add fields if necessary.
+   * @param msg The message sent by the user.
+   * @param embedArg The embed to send with the message.
+   * @param group The command group being traversed.
+   * @param commands The commands in the group.
+   * @param showAll Whether or not we should show all commands.
+   */
   private async getContentForField(msg: Message, embedArg: MessageEmbed, group: string, commands: Command[], showAll: boolean): Promise<{
+    /**
+     * The content of the field to be added.
+     */
     content: string,
+    /**
+     * The embed object.
+     */
     embed: MessageEmbed,
+    /**
+     * The total length added to the embed.
+     */
     length: number
   }> {
     let embed = embedArg
@@ -120,6 +138,9 @@ export class HelpCommand extends Command {
     return { content, embed, length }
   }
 
+  /**
+   * Maps the bot's commands by group.
+   */
   private getCommandsByGroup(): Map<string, Command[]> {
     const commands: Map<string, Command[]> = new Map()
 
