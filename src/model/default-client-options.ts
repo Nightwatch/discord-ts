@@ -22,6 +22,5 @@ export const DefaultClientOptions: ClientOptions = {
   ws: {
     compress: false,
     large_threshold: 250
-  },
-  partials: []
+  }
 }
