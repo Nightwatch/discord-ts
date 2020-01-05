@@ -1,4 +1,5 @@
 import { Client, Message, CommandOptions } from '.'
+import { Constants } from '../util'
 
 /**
  * A command for your bot.
@@ -56,6 +57,10 @@ export abstract class Command {
   public constructor(client: Client, options: CommandOptions) {
     this.options = options
     this.client = client
+
+    if (!this.options.group) {
+      this.options.group = Constants.DefaultGroup
+    }
   }
 
   /**

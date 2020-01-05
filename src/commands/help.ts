@@ -59,9 +59,7 @@ export class HelpCommand extends Command {
 
     const commands = this.getCommandsByGroup()
 
-    for (const pair of commands.entries()) {
-      const groupName = pair[0]
-      const groupCommands = pair[1]
+    for (const [ groupName, groupCommands ] of commands) {
       const fieldUpdateResult = await this.getContentForField(msg, embed, groupName, groupCommands, showAll)
 
       embed = fieldUpdateResult.embed
@@ -145,12 +143,7 @@ export class HelpCommand extends Command {
     const commands: Map<string, Command[]> = new Map()
 
     for (const command of this.client.commands.values()) {
-      let group = command.options.group
-
-      if (!group) {
-        group = 'no group'
-      }
-
+      const group = command.options.group as string
       const groupArray = commands.get(group)
 
       if (groupArray) {
