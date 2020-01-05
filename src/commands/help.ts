@@ -55,10 +55,58 @@ export class HelpCommand extends Command {
    */
   private async showHelp(msg: Message, embedArg: MessageEmbed, showAll: boolean): Promise<void> {
     let embed = embedArg.setTitle('Command List').setDescription(this.getDescription(msg))
-
     let length = embed.title.length + (embed.footer.text || '').length + embed.description.length
 
-    for (const command of this.client.commands.values()) {
+    const commands = this.getCommandsByGroup()
+
+    for (const pair of commands.entries()) {
+      const groupName = pair[0]
+      const groupCommands = pair[1]
+      const fieldUpdateResult = await this.getContentForField(msg, embed, groupName, groupCommands, showAll)
+
+      embed = fieldUpdateResult.embed
+      length += groupName.length
+
+      if (embed.fields.length === 25 || length + fieldUpdateResult.length > 6000) {
+        await msg.author.send({ embed })
+        embed = new MessageEmbed(this.client).setTitle('Command list')
+      }
+
+      embed.addField(groupName, fieldUpdateResult.content)
+    }
+
+    await msg.author.send({ embed })
+  }
+
+  /**
+   * Gets the content in a field for the help command.
+   * Will add fields if necessary.
+   * @param msg The message sent by the user.
+   * @param embedArg The embed to send with the message.
+   * @param group The command group being traversed.
+   * @param commands The commands in the group.
+   * @param showAll Whether or not we should show all commands.
+   */
+  private async getContentForField(msg: Message, embedArg: MessageEmbed, group: string, commands: Command[], showAll: boolean): Promise<{
+    /**
+     * The content of the field to be added.
+     */
+    content: string,
+    /**
+     * The embed object.
+     */
+    embed: MessageEmbed,
+    /**
+     * The total length added to the embed.
+     */
+    length: number
+  }> {
+    let embed = embedArg
+    let content = ''
+    let groupName = group
+    let length = 0
+    
+    for (const command of commands) {
       if (
         command.options.unknown ||
         command.options.hidden ||
@@ -68,18 +116,51 @@ export class HelpCommand extends Command {
       }
 
       const name = `${command.options.name}${command.options.guildOnly ? '(Guild only)' : ''}`
-      const addedLength = name.length + command.options.description.length
+      const added = `**${name}** - ${command.options.description}\n`
 
-      if (embed.fields.length === 25 || length + addedLength > 6000) {
+      if (length + added.length > 6000) {
         await msg.author.send({ embed })
         embed = new MessageEmbed(this.client).setTitle('Command list')
       }
 
-      embed.addField(name, command.options.description)
-      length += addedLength
+      if (content.length + added.length > 1024) {
+        embed.addField(groupName, content)
+
+        groupName = `${groupName} (cont.)`
+        length += groupName.length
+        content = ''
+      }
+
+      content += added
+      length += added.length
     }
 
-    await msg.author.send({ embed })
+    return { content, embed, length }
+  }
+
+  /**
+   * Maps the bot's commands by group.
+   */
+  private getCommandsByGroup(): Map<string, Command[]> {
+    const commands: Map<string, Command[]> = new Map()
+
+    for (const command of this.client.commands.values()) {
+      let group = command.options.group
+
+      if (!group) {
+        group = 'no group'
+      }
+
+      const groupArray = commands.get(group)
+
+      if (groupArray) {
+        commands.set(group, groupArray.concat(command))
+      } else {
+        commands.set(group, [ command ])
+      }
+    }
+
+    return commands
   }
 
   /**
@@ -130,6 +211,10 @@ export class HelpCommand extends Command {
       .addField('Description', command.options.description)
       .addField('Format', format)
       .addField('Aliases', aliases)
+
+    if (command.options.group) {
+      embed.addField('Group', command.options.group)
+    }
 
     await msg.author.send({ embed })
   }

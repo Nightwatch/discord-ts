@@ -10,6 +10,7 @@ export default class AddNumbersCommand extends Command {
       name: 'add-numbers',
       aliases: ['add', 'add-nums'],
       description: 'Adds numbers together.',
+      group: 'math',
       args: [
         {
           key: 'numbers',
