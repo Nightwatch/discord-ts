@@ -1,19 +1,13 @@
-import { GuildMemberResolvable } from 'discord.js'
+import { Guild, GuildMember } from 'discord.js'
+import { UserService } from '../services/user-service'
 
-/**
- * The type of the argument.
- */
-export interface ArgumentType {
-  /**
-   * Requires the argument to be a numeric value
-   */
-  number: number
-  /**
-   * Accepts any value
-   */
-  string: string
-  /**
-   * Requires the argument to be a user mention
-   */
-  user: GuildMemberResolvable
-}
+export type ArgumentType = 'user' | 'number' | 'string'
+
+const UserArgumentResolver = (value: string, guild: Guild, userService: UserService) => userService.getMemberFromMention(guild, value)
+
+export const ArgumentTypeResolver = (key: ArgumentType) => ({
+  user: UserArgumentResolver,
+  number: Number,
+  string: String
+})[key]
+

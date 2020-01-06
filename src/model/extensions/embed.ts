@@ -1,4 +1,4 @@
-import { MessageEmbed as DiscordJsMessageEmbed, MessageEmbedOptions } from 'discord.js'
+import { RichEmbed, MessageEmbed as DiscordEmbed, RichEmbedOptions } from 'discord.js'
 import { Client } from './client'
 
 /**
@@ -8,14 +8,14 @@ import { Client } from './client'
  *
  * @see https://discord.js.org/#/docs/main/master/class/MessageEmbed
  */
-export class MessageEmbed extends DiscordJsMessageEmbed {
+export class MessageEmbed extends RichEmbed {
   /**
    * Creates an embed to make your messages look fancier.
    *
    * @param client - The main Client instance
    * @param options - Optional settings for the embed
    */
-  public constructor(client: Client, options?: MessageEmbedOptions) {
+  public constructor(client: Client, options?: DiscordEmbed | RichEmbedOptions) {
     super(options)
 
     this.setColor(client.options.color || 'GREEN')

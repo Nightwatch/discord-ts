@@ -1,4 +1,4 @@
-import { ArgumentType } from '.'
+import { ArgumentType } from '..'
 
 /**
  * A command argument.
@@ -38,8 +38,7 @@ export interface Argument {
    * You can also allow multiple types.
    *
    * `['user', 'number']` will allow the value to be either a user mention or a numeric value.
-   *
-   * The order of the types matter. I parse the type from left to right.
+   * The order of the types matter.
    */
-  type: (keyof ArgumentType) | Array<keyof ArgumentType>
+  type: ArgumentType | ArgumentType[]
 }

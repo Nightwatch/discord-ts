@@ -55,7 +55,7 @@ export class HelpCommand extends Command {
    */
   private async showHelp(msg: Message, embedArg: MessageEmbed, showAll: boolean): Promise<void> {
     let embed = embedArg.setTitle('Command List').setDescription(this.getDescription(msg))
-    let length = embed.title.length + (embed.footer.text || '').length + embed.description.length
+    let length = (embed.title?.length || 0) + (embed.footer?.text || '').length + (embed.description?.length || 0)
 
     const commands = this.getCommandsByGroup()
 
@@ -67,7 +67,7 @@ export class HelpCommand extends Command {
       embed = fieldUpdateResult.embed
       length += groupName.length
 
-      if (embed.fields.length === 25 || length + fieldUpdateResult.length > 6000) {
+      if (embed.fields?.length === 25 || length + fieldUpdateResult.length > 6000) {
         await msg.author.send({ embed })
         embed = new MessageEmbed(this.client).setTitle('Command list')
       }
@@ -105,7 +105,7 @@ export class HelpCommand extends Command {
     let content = ''
     let groupName = group
     let length = 0
-    
+
     for (const command of commands) {
       if (
         command.options.unknown ||
@@ -156,7 +156,7 @@ export class HelpCommand extends Command {
       if (groupArray) {
         commands.set(group, groupArray.concat(command))
       } else {
-        commands.set(group, [ command ])
+        commands.set(group, [command])
       }
     }
 
@@ -200,7 +200,7 @@ export class HelpCommand extends Command {
       argument.optional ? `[${argument.key}]` : `<${argument.key}>`
     const format = `\`${prefix}${command.options.name} ${
       command.options.args ? command.options.args.map(formatArgument).join(' ') : ''
-    }\``
+      }\``
 
     const aliases = command.options.aliases
       ? command.options.aliases.map(a => `\`${a}\``).join(', ')

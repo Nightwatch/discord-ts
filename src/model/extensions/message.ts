@@ -1,4 +1,4 @@
-import { DMChannel, Message as DiscordJsMessage, Structures, TextChannel } from 'discord.js'
+import { DMChannel, Message as DiscordJsMessage, TextChannel } from 'discord.js'
 import { Client } from '..'
 import { Command } from '../command'
 
@@ -13,9 +13,7 @@ export class Message extends DiscordJsMessage {
    */
   public command?: Command
 
-  public constructor(client: Client, data: object, channel: DMChannel | TextChannel) {
-    super(client, data, channel)
+  public constructor(channel: DMChannel | TextChannel, data: object, client: Client) {
+    super(channel, data, client)
   }
 }
-
-Structures.extend('Message', () => Message)

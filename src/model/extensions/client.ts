@@ -3,10 +3,11 @@ import { promises as fs } from 'fs'
 import * as path from 'path'
 import { HelpCommand, UnknownCommand } from '../../commands'
 import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
-import { DefaultClientOptions } from '../default-client-options'
 import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
 import { Logger } from '../../util'
 import { DefaultCommandOptions, initDefaultCommandOptions } from '../default-command-options'
+import { ArgumentTypeResolver } from '../argument-type'
+import { UserService } from '../../services'
 
 /**
  * Extension of the Discord.js Client.
@@ -31,10 +32,13 @@ export class Client extends DiscordJsClient {
    */
   public unknownCommand?: Command
 
-  public constructor(options: ClientOptions) {
-    super(Util.mergeDefault(DefaultClientOptions, options))
+  private readonly userService: UserService
+
+  public constructor(options: ClientOptions, userService: UserService = new UserService()) {
+    super(options)
 
     this.options = options
+    this.userService = userService
 
     this.on('message', async (msg: Message) => this.onMessage(msg))
   }
@@ -73,7 +77,7 @@ export class Client extends DiscordJsClient {
       if (this.unknownCommand && !this.unknownCommand.options.default) {
         throw new TypeError(
           `Command ${this.unknownCommand.options.name} is already the unknown command, ${
-            command.options.name
+          command.options.name
           } cannot also be it.`
         )
       }
@@ -119,46 +123,6 @@ export class Client extends DiscordJsClient {
   }
 
   /**
-   * Converts a string to a given argument type.
-   *
-   * @param from - The string value given by the user.
-   * @param to - The expected type.
-   * @param guild - The guild the command was from.
-   */
-  private convertArgToType<K extends keyof ArgumentType>(
-    from: string,
-    to: K | K[],
-    guild?: Guild
-  ): Maybe<ArgumentType[K]> {
-    const convert = (toType: K): Maybe<ArgumentType[K]> => {
-      switch (toType) {
-        case 'number':
-          return Just(Number(from))
-        case 'user':
-          return Maybe.fromFalsy(guild).chain(justGuild =>
-            this.getMemberFromMention(justGuild, from)
-          )
-        default:
-          return Just(from)
-      }
-    }
-
-    if (Array.isArray(to)) {
-      for (const t of to) {
-        const converted = convert(t)
-
-        if (converted) {
-          return converted
-        }
-      }
-
-      return Nothing
-    }
-
-    return convert(to)
-  }
-
-  /**
    * Helper method to fail when a duplicate command is registered.
    *
    * @param command - The comamnd that was attempted to be registered.
@@ -167,7 +131,7 @@ export class Client extends DiscordJsClient {
   private failDuplicate(command: Command, existingCommand: Command): never {
     throw new TypeError(
       `Unable to register command '${command.options.name}'. I've already registered a command '${
-        existingCommand.options.name
+      existingCommand.options.name
       }' which either has the same name or shares an alias.`
     )
   }
@@ -234,21 +198,6 @@ export class Client extends DiscordJsClient {
   }
 
   /**
-   * Returns a GuildMember from a mention.
-   *
-   * @param guild - The guild the mention came from.
-   * @param mention - The user mention.
-   */
-  private getMemberFromMention(guild: Guild, mention: NonNullable<string>): Maybe<GuildMember> {
-    // source: https://github.com/discordjs/guide/blob/master/guide/miscellaneous/parsing-mention-arguments.md
-
-    return Maybe.fromPredicate(id => id.startsWith('<@') && id.endsWith('>'), mention)
-      .map(id => id.slice(2, -1))
-      .map(id => id.replace('!', ''))
-      .chainNullable(id => guild.members.get(id))
-  }
-
-  /**
    * Gets the prefix used by the user (in case an array was used)
    *
    * @param msg - The CommandMessage representing the user's message
@@ -285,32 +234,13 @@ export class Client extends DiscordJsClient {
       .reply(
         // tslint:disable-next-line: no-non-null-assertion
         `An error occurred during the execution of the \`${msg.command!.options.name}\` command: ${
-          error.message
+        error.message
         }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
       )
       .catch(_ => {
         // swallow
       })
     Logger.error(error)
-  }
-
-  /**
-   * Converts an array of arguments to an object key/value store with the designated type from the command args.
-   *
-   * @param command - The command object.
-   * @param args - The formatted argument string array.
-   */
-  private mapArgsToObject(msg: Message, args: string[]): Maybe<object> {
-    return Maybe.fromNullable(msg.command)
-      .chainNullable(command => command.options.args)
-      .map(commandArgs =>
-        commandArgs.map((argument, index) => ({
-          [argument.key]: this.convertArgToType(args[index], argument.type, msg.guild).extract()
-        }))
-      )
-      .map(keyValueArray =>
-        keyValueArray.reduce((occumulator, value) => ({ ...occumulator, ...value }), {})
-      )
   }
 
   /**
@@ -434,7 +364,9 @@ export class Client extends DiscordJsClient {
       return
     }
 
-    if (!msg.command.hasPermission(msg)) {
+    const hasPermission = msg.command.hasPermission(msg)
+
+    if (!hasPermission) {
       await msg.reply(
         `You do not have permission to use the \`${msg.command.options.name}\` command.`
       )
@@ -473,7 +405,7 @@ export class Client extends DiscordJsClient {
 
     const formattedArgs = this.getFormattedArgs(msg.command, args)
 
-    const argsValid = this.validateArgs(msg, msg.command, formattedArgs)
+    const argsValid = await this.validateArgs(msg, msg.command, formattedArgs)
 
     if (!argsValid) {
       return
@@ -482,6 +414,35 @@ export class Client extends DiscordJsClient {
     const argsObject = this.mapArgsToObject(msg, formattedArgs)
 
     return this.runCommand(msg, argsObject)
+  }
+
+  /**
+   * Converts an array of arguments to an object key/value store with the designated type from the command args.
+   *
+   * @param command - The command object.
+   * @param args - The formatted argument string array.
+   */
+  private mapArgsToObject(msg: Message, args: string[]): Maybe<object> {
+    return Maybe.fromNullable(msg.command)
+      .chainNullable(command => command.options.args)
+      .map(commandArgs =>
+        commandArgs.map((argument, index) => ({
+          [argument.key]: this.resolveArgumentType(args[index], argument.type, msg.guild)
+        }))
+      )
+      .map(keyValueArray =>
+        keyValueArray.reduce((occumulator, value) => ({ ...occumulator, ...value }), {})
+      )
+  }
+
+  private resolveArgumentType(value: string, argumentType: ArgumentType | ArgumentType[], guild: Guild) {
+    if (Array.isArray(argumentType)) {
+      for (const type of argumentType) {
+        return ArgumentTypeResolver(type)(value, guild, this.userService)
+      }
+    } else {
+      return ArgumentTypeResolver(argumentType)(value, guild, this.userService)
+    }
   }
 
   /**
@@ -539,7 +500,7 @@ export class Client extends DiscordJsClient {
           return false
         }
 
-        return !!this.getMemberFromMention(msg.guild, value)
+        return this.userService.getMemberFromMention(msg.guild, value).isJust()
       default:
         return true
     }
@@ -561,7 +522,7 @@ export class Client extends DiscordJsClient {
         } else if (optional) {
           throw new TypeError(
             `Required argument ${arg.key} of command ${
-              command.options.name
+            command.options.name
             } is after an optional argument.`
           )
         }

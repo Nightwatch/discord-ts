@@ -63,7 +63,7 @@ export abstract class Command {
    *
    * @param msg - The message object
    */
-  public async hasPermission(msg: Message): Promise<boolean> {
+  public hasPermission(msg: Message): boolean {
     return true
   }
 
