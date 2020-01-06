@@ -427,7 +427,7 @@ export class Client extends DiscordJsClient {
       .chainNullable(command => command.options.args)
       .map(commandArgs =>
         commandArgs.map((argument, index) => ({
-          [argument.key]: this.resolveArgumentType(args[index], argument.type, msg.guild)
+          [argument.key]: this.resolveArgumentType(args[index], argument.type, msg.guild).extract()
         }))
       )
       .map(keyValueArray =>
@@ -438,10 +438,14 @@ export class Client extends DiscordJsClient {
   private resolveArgumentType(value: string, argumentType: ArgumentType | ArgumentType[], guild: Guild) {
     if (Array.isArray(argumentType)) {
       for (const type of argumentType) {
-        return ArgumentTypeResolver(type)(value, guild, this.userService)
+        const resolved = ArgumentTypeResolver(type)({ input: value, guild, userService: this.userService })
+        if (resolved.isJust()) {
+          return resolved
+        }
       }
+      return Maybe.empty()
     } else {
-      return ArgumentTypeResolver(argumentType)(value, guild, this.userService)
+      return ArgumentTypeResolver(argumentType)({ input: value, guild, userService: this.userService })
     }
   }
 

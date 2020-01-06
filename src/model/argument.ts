@@ -1,4 +1,4 @@
-import { ArgumentType } from '..'
+import { ArgumentType } from '.'
 
 /**
  * A command argument.
