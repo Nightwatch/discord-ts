@@ -1,8 +1,4 @@
-import { Command } from '../model/command'
-import { Message } from '../model/extensions/message'
-import { Client } from '../model/extensions/client'
-import { MessageEmbed } from '../model/extensions/embed'
-import { Argument } from '../model'
+import { Message, MessageEmbed, Command, Argument, Client } from '../model'
 
 /**
  * The default help command.
@@ -55,14 +51,23 @@ export class HelpCommand extends Command {
    */
   private async showHelp(msg: Message, embedArg: MessageEmbed, showAll: boolean): Promise<void> {
     let embed = embedArg.setTitle('Command List').setDescription(this.getDescription(msg))
-    let length = (embed.title?.length || 0) + (embed.footer?.text || '').length + (embed.description?.length || 0)
+    let length =
+      (embed.title?.length || 0) +
+      (embed.footer?.text || '').length +
+      (embed.description?.length || 0)
 
     const commands = this.getCommandsByGroup()
 
     for (const pair of commands.entries()) {
       const groupName = pair[0]
       const groupCommands = pair[1]
-      const fieldUpdateResult = await this.getContentForField(msg, embed, groupName, groupCommands, showAll)
+      const fieldUpdateResult = await this.getContentForField(
+        msg,
+        embed,
+        groupName,
+        groupCommands,
+        showAll
+      )
 
       embed = fieldUpdateResult.embed
       length += groupName.length
@@ -87,15 +92,21 @@ export class HelpCommand extends Command {
    * @param commands The commands in the group.
    * @param showAll Whether or not we should show all commands.
    */
-  private async getContentForField(msg: Message, embedArg: MessageEmbed, group: string, commands: Command[], showAll: boolean): Promise<{
+  private async getContentForField(
+    msg: Message,
+    embedArg: MessageEmbed,
+    group: string,
+    commands: Command[],
+    showAll: boolean
+  ): Promise<{
     /**
      * The content of the field to be added.
      */
-    content: string,
+    content: string
     /**
      * The embed object.
      */
-    embed: MessageEmbed,
+    embed: MessageEmbed
     /**
      * The total length added to the embed.
      */
@@ -110,7 +121,8 @@ export class HelpCommand extends Command {
       if (
         command.options.unknown ||
         command.options.hidden ||
-        ((showAll && !command.hasPermission(msg)) || (command.options.guildOnly && msg.guild))
+        (showAll && !(await command.hasPermission(msg))) ||
+        (command.options.guildOnly && msg.guild)
       ) {
         continue
       }
@@ -200,7 +212,7 @@ export class HelpCommand extends Command {
       argument.optional ? `[${argument.key}]` : `<${argument.key}>`
     const format = `\`${prefix}${command.options.name} ${
       command.options.args ? command.options.args.map(formatArgument).join(' ') : ''
-      }\``
+    }\``
 
     const aliases = command.options.aliases
       ? command.options.aliases.map(a => `\`${a}\``).join(', ')

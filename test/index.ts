@@ -43,9 +43,7 @@ class Bot {
       .on('ready', () => {
         if (this.client.user) {
           Logger.info(
-            `Client ready; logged in as ${this.client.user.username}#${
-              this.client.user.discriminator
-            } (${this.client.user.id})`
+            `Client ready; logged in as ${this.client.user.username}#${this.client.user.discriminator} (${this.client.user.id})`
           )
         }
       })

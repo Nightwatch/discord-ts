@@ -1,22 +1,28 @@
-import { Guild, GuildMember } from 'discord.js'
-import { UserService } from '../services/user-service'
-import { Just } from 'purify-ts/Maybe'
+import { Guild, GuildMember, GuildMemberResolvable } from 'discord.js'
+import { Just, Maybe } from 'purify-ts/Maybe'
+import { UserService } from '../services'
 
 export type ArgumentType = 'user' | 'number' | 'string'
 
 interface ArgumentResolverOptions {
-  input: string,
-  guild: Guild,
+  input: string
+  guild: Guild
   userService: UserService
 }
 
-const UserArgumentResolver = (options: ArgumentResolverOptions) => options.userService.getMemberFromMention(options.guild, options.input)
-const NumberArgumentResolver = (options: ArgumentResolverOptions) => Just(Number(options.input))
-const StringArgumentResolver = (options: ArgumentResolverOptions) => Just(options.input)
+type Resolvable<T> = (options: ArgumentResolverOptions) => Maybe<T>
 
-export const ArgumentTypeResolver = (key: ArgumentType) => ({
-  user: UserArgumentResolver,
-  number: NumberArgumentResolver,
-  string: StringArgumentResolver
-})[key]
+const UserArgumentResolver: Resolvable<GuildMemberResolvable> = (
+  options: ArgumentResolverOptions
+) => options.userService.getMemberFromMention(options.guild, options.input)
+const NumberArgumentResolver: Resolvable<number> = (options: ArgumentResolverOptions) =>
+  Just(Number(options.input))
+const StringArgumentResolver: Resolvable<string> = (options: ArgumentResolverOptions) =>
+  Just(options.input)
 
+export const ArgumentTypeResolver = (key: ArgumentType) =>
+  ({
+    user: UserArgumentResolver,
+    number: NumberArgumentResolver,
+    string: StringArgumentResolver
+  }[key])

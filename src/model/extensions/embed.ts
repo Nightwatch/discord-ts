@@ -1,5 +1,5 @@
 import { RichEmbed, MessageEmbed as DiscordEmbed, RichEmbedOptions } from 'discord.js'
-import { Client } from './client'
+import { Client } from './'
 
 /**
  * Extension of the Discord.js MessageEmbed.

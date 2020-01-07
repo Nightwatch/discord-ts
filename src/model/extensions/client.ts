@@ -1,9 +1,9 @@
-import { Client as DiscordJsClient, Guild, GuildMember, Util, Collection } from 'discord.js'
+import { Client as DiscordJsClient, Guild, Collection } from 'discord.js'
 import { promises as fs } from 'fs'
 import * as path from 'path'
 import { HelpCommand, UnknownCommand } from '../../commands'
 import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
-import { Maybe, Just, Nothing } from 'purify-ts/Maybe'
+import { Maybe, Nothing } from 'purify-ts/Maybe'
 import { Logger } from '../../util'
 import { DefaultCommandOptions, initDefaultCommandOptions } from '../default-command-options'
 import { ArgumentTypeResolver } from '../argument-type'
@@ -76,9 +76,7 @@ export class Client extends DiscordJsClient {
     if (command.options.unknown) {
       if (this.unknownCommand && !this.unknownCommand.options.default) {
         throw new TypeError(
-          `Command ${this.unknownCommand.options.name} is already the unknown command, ${
-          command.options.name
-          } cannot also be it.`
+          `Command ${this.unknownCommand.options.name} is already the unknown command, ${command.options.name} cannot also be it.`
         )
       }
 
@@ -130,9 +128,7 @@ export class Client extends DiscordJsClient {
    */
   private failDuplicate(command: Command, existingCommand: Command): never {
     throw new TypeError(
-      `Unable to register command '${command.options.name}'. I've already registered a command '${
-      existingCommand.options.name
-      }' which either has the same name or shares an alias.`
+      `Unable to register command '${command.options.name}'. I've already registered a command '${existingCommand.options.name}' which either has the same name or shares an alias.`
     )
   }
 
@@ -234,7 +230,7 @@ export class Client extends DiscordJsClient {
       .reply(
         // tslint:disable-next-line: no-non-null-assertion
         `An error occurred during the execution of the \`${msg.command!.options.name}\` command: ${
-        error.message
+          error.message
         }\n\nYou should never see this. Please contact ${ownerDisplayString}.`
       )
       .catch(_ => {
@@ -366,7 +362,7 @@ export class Client extends DiscordJsClient {
 
     const hasPermission = msg.command.hasPermission(msg)
 
-    if (!hasPermission) {
+    if (!(await hasPermission)) {
       await msg.reply(
         `You do not have permission to use the \`${msg.command.options.name}\` command.`
       )
@@ -435,18 +431,31 @@ export class Client extends DiscordJsClient {
       )
   }
 
-  private resolveArgumentType(value: string, argumentType: ArgumentType | ArgumentType[], guild: Guild) {
+  private resolveArgumentType(
+    value: string,
+    argumentType: ArgumentType | ArgumentType[],
+    guild: Guild
+  ) {
     if (Array.isArray(argumentType)) {
       for (const type of argumentType) {
-        const resolved = ArgumentTypeResolver(type)({ input: value, guild, userService: this.userService })
+        const resolved = ArgumentTypeResolver(type)({
+          input: value,
+          guild,
+          userService: this.userService
+        })
         if (resolved.isJust()) {
           return resolved
         }
       }
+
       return Maybe.empty()
-    } else {
-      return ArgumentTypeResolver(argumentType)({ input: value, guild, userService: this.userService })
     }
+
+    return ArgumentTypeResolver(argumentType)({
+      input: value,
+      guild,
+      userService: this.userService
+    })
   }
 
   /**
@@ -525,9 +534,7 @@ export class Client extends DiscordJsClient {
           optional = true
         } else if (optional) {
           throw new TypeError(
-            `Required argument ${arg.key} of command ${
-            command.options.name
-            } is after an optional argument.`
+            `Required argument ${arg.key} of command ${command.options.name} is after an optional argument.`
           )
         }
 

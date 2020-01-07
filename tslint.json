@@ -1,31 +1,10 @@
 {
-  "extends": [
-    "tslint:all",
-    "tslint-config-standard",
-    "tslint-config-prettier",
-    "tslint-sonarts",
-    "tslint-clean-code"
-  ],
+  "extends": ["tslint-config-standard", "tslint-config-prettier"],
   "rules": {
     "file-name-casing": [true, "kebab-case"],
-    "interface-name": false,
-    "strict-boolean-expressions": false,
     "typedef": {
       "options": ["call-signature"]
     },
-    "increment-decrement": false,
-    "no-inferred-empty-object-type": false,
-    "prefer-function-over-method": false,
-    "no-parameter-reassignment": {
-      "severity": "warn"
-    },
-    "no-magic-numbers": false,
-    "only-arrow-functions": false,
-    "ordered-imports": false,
-    "curly": true,
-    "object-literal-sort-keys": false,
-    "no-submodule-imports": false,
-    "newspaper-order": true,
-    "member-ordering": false
+    "curly": true
   }
 }

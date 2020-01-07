@@ -1,6 +1,6 @@
 import { DMChannel, Message as DiscordJsMessage, TextChannel } from 'discord.js'
-import { Client } from '..'
-import { Command } from '../command'
+import { Command } from '..'
+import { Client } from '.'
 
 /**
  * Subclass of the Discord.js Message class.

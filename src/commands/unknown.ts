@@ -1,6 +1,4 @@
-import { Command } from '../model/command'
-import { Message } from '../model/extensions/message'
-import { Client } from '../model/extensions/client'
+import { Command, Client, Message } from '../model'
 
 /**
  * Handles when the user enters a command that does not exist

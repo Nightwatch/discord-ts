@@ -1,4 +1,4 @@
-import { Client, Message, CommandOptions } from '.'
+import { CommandOptions, Client, Message } from '.'
 
 /**
  * A command for your bot.
@@ -63,7 +63,7 @@ export abstract class Command {
    *
    * @param msg - The message object
    */
-  public hasPermission(msg: Message): boolean {
+  public async hasPermission(msg: Message): Promise<boolean> {
     return true
   }
 
