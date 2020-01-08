@@ -36,11 +36,14 @@ export abstract class Command {
    * @param nameOrAlias - The name or alias of the command, e.g. `echo`
    */
   public static find(client: Client, nameOrAlias: string): Command | undefined {
-    return client.commands.find(
-      x =>
-        x.options.name === nameOrAlias ||
-        (!!x.options.aliases && x.options.aliases.includes(nameOrAlias))
+    return (
+      client.commands.find(x => x.options.name === nameOrAlias) ||
+      this.findByAlias(client, nameOrAlias)
     )
+  }
+
+  private static findByAlias(client: Client, alias: string): Command | undefined {
+    return client.commands.find(x => !!x.options.aliases && x.options.aliases.includes(alias))
   }
 
   /**
