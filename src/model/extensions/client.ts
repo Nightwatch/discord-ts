@@ -32,13 +32,12 @@ export class Client extends DiscordJsClient {
    */
   public unknownCommand?: Command
 
-  private readonly userService: UserService
+  private readonly userService = new UserService()
 
-  public constructor(options: ClientOptions, userService: UserService = new UserService()) {
+  public constructor(options: ClientOptions) {
     super(options)
 
     this.options = options
-    this.userService = userService
 
     this.on('message', async (msg: Message) => this.onMessage(msg))
   }
