@@ -1,4 +1,4 @@
-# bot-ts
+# Bot-TS
 
 Superset of discord.js with a built-in command framework.
 
@@ -8,7 +8,7 @@ Prerequisites
 
 - Node.js >= v10
 
-You can install bot-ts with your favorite package manager:
+You can install Bot-TS with your favorite package manager:
 
 - `npm install --save bot-ts`
 
@@ -47,7 +47,7 @@ This method will find all commands within a directory and register them.
 
 The directory may contain other files and non-commands. I will ignore those.
 
-bot-ts includes some base commands that you may find helpful. Register them before you register any custom commands:
+Bot-TS includes some base commands that you may find helpful. Register them before you register any custom commands:
 
 ```ts
 client.registerDefaultCommands().registerCommandsIn(path.join(__dirname, 'commands'))
@@ -67,7 +67,7 @@ Any default command you set to `false` will not be registered.
 
 ### Creating a command
 
-bot-ts comes with its own command framework, allowing you to create powerful commands very easily.
+Bot-TS comes with its own command framework, allowing you to create powerful commands very easily.
 
 #### Hello world command
 
@@ -155,7 +155,7 @@ Please note that the object property within the `run` method must be named exact
 
 There will be some commands you don't want every user to be able to use (e.g. kick, ban, mute, etc.).
 
-bot-ts allows you to deny users access to these commands with the `hasPermission` method where you can require some conditions to be met in order for the user to be able to use the command (e.g. must require a certain permission, a certain role, etc.)
+Bot-TS allows you to deny users access to these commands with the `hasPermission` method where you can require some conditions to be met in order for the user to be able to use the command (e.g. must require a certain permission, a certain role, etc.)
 
 Let's revise the HelloWorld command once again to restrict the command to only be usable by users with the "MANAGE_MESSAGES" permission.
 
