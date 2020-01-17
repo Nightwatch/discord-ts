@@ -38,6 +38,11 @@ export interface CommandOptions {
   guildOnly?: boolean
 
   /**
+   * Whether or not the commad is only usable by the bot owner.
+   */
+  ownerOnly?: boolean
+
+  /**
    * Whether or not this command is hidden from the default help command.
    */
   hidden?: boolean
