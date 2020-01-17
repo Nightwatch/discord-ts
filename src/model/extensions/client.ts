@@ -292,7 +292,12 @@ export class Client extends DiscordJsClient {
 
     const command = Command.find(this, commandName)
 
-    if (!command || command.options.unknown || (command.options.guildOnly && msg.guild)) {
+    if (
+      !command ||
+      command.options.unknown ||
+      (command.options.guildOnly && msg.guild) ||
+      (command.options.ownerOnly && msg.author.id !== this.options.ownerId)
+    ) {
       this.emit(Event.INVALID_COMMAND, msg)
 
       if (this.unknownCommand) {
