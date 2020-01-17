@@ -359,9 +359,15 @@ export class Client extends DiscordJsClient {
       return
     }
 
-    const hasPermission = msg.command.hasPermission(msg)
+    const hasPermission = await msg.command.hasPermission(msg)
 
-    if (!(await hasPermission)) {
+    if (typeof hasPermission === 'string') {
+      await msg.reply(hasPermission)
+
+      return
+    }
+
+    if (!hasPermission) {
       await msg.reply(
         `You do not have permission to use the \`${msg.command.options.name}\` command.`
       )
