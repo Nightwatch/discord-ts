@@ -26,6 +26,11 @@ export interface Argument {
   phrase: string
 
   /**
+   * A default value for the argument if it is not passed by the user.
+   */
+  default?: string
+
+  /**
    * The type of the argument.
    * Can be a single type, or an array of types.
    *

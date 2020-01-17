@@ -401,7 +401,9 @@ export class Client extends DiscordJsClient {
       return this.runCommand(msg, Nothing)
     }
 
-    const required = msg.command.options.args.filter(arg => !arg.optional)
+    const required = msg.command.options.args.filter(
+      arg => !arg.optional && arg.default === undefined
+    )
 
     if (required.length > args.length) {
       await msg.reply(`Insufficient arguments. Expected at least ${required.length}.`) // TODO: Make this better. Maybe a pretty embed as well?
@@ -433,7 +435,11 @@ export class Client extends DiscordJsClient {
       .chainNullable(command => command.options.args)
       .map(commandArgs =>
         commandArgs.map((argument, index) => ({
-          [argument.key]: this.resolveArgumentType(args[index], argument.type, msg.guild).extract()
+          [argument.key]: this.resolveArgumentType(
+            args[index] || argument.default || '',
+            argument.type,
+            msg.guild
+          ).extract()
         }))
       )
       .map(keyValueArray =>
@@ -476,12 +482,22 @@ export class Client extends DiscordJsClient {
    * @param args - The arguments provided by the user.
    */
   private async validateArgs(msg: Message, command: Command, args: string[]): Promise<boolean> {
-    for (let i = 0; i < args.length; i++) {
-      if (!command.options.args) {
-        continue
+    if (!command.options.args) {
+      return true
+    }
+
+    for (let i = 0; i < command.options.args.length; i++) {
+      const commandArg = command.options.args[i]
+
+      if (commandArg.optional && !args[i]) {
+        return true
       }
 
-      const expectedType = [...command.options.args[i].type]
+      if (commandArg.default && !args[i]) {
+        return true
+      }
+
+      const expectedType = [...commandArg.type]
 
       let foundType = false
       for (const t of expectedType) {
@@ -496,7 +512,8 @@ export class Client extends DiscordJsClient {
 
         return false
       }
-
+    }
+    for (let i = 0; i < args.length; i++) {
       return true
     }
 
