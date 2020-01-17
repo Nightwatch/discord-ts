@@ -13,7 +13,11 @@ export class Message extends DiscordJsMessage {
    */
   public command?: Command
 
-  public constructor(channel: DMChannel | TextChannel, data: object, client: Client) {
+  public constructor(
+    public readonly channel: DMChannel | TextChannel,
+    public readonly data: object,
+    public readonly client: Client
+  ) {
     super(channel, data, client)
   }
 }
