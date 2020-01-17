@@ -28,7 +28,7 @@ export interface Argument {
   /**
    * A default value for the argument if it is not passed by the user.
    */
-  default?: string
+  default?: any
 
   /**
    * The type of the argument.

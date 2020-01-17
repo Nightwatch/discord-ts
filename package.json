@@ -1,6 +1,6 @@
 {
   "name": "bot-ts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Superset of discord.js with a built-in command framework.",
   "keywords": [],
   "main": "dist/index.js",
