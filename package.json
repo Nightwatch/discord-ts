@@ -1,5 +1,5 @@
 {
-  "name": "bot-ts",
+  "name": "tscord",
   "version": "0.2.1",
   "description": "Superset of discord.js with a built-in command framework.",
   "keywords": [],
@@ -11,7 +11,7 @@
   "author": "Tanner Goins <tannergz28@gmail.com>",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git://github.com/Nightwatch/tscord.git"
   },
   "license": "MIT",
   "engines": {
@@ -62,7 +62,7 @@
     "tslint": "^5.11.0",
     "tslint-config-prettier": "^1.15.0",
     "tslint-config-standard": "^8.0.1",
-    "typedoc": "^0.12.0",
+    "typedoc": "^0.16.7",
     "typedoc-vortex-theme": "^0.0.2",
     "typescript": "^3.7.4"
   },

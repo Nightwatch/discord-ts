@@ -14,7 +14,7 @@ export interface CommandOptions {
   args?: Argument[]
 
   /**
-   * Specifies that the command is a default command from bot-ts, allowing the command to be overidden.
+   * Specifies that the command is a default command from tscord, allowing the command to be overidden.
    */
   default?: boolean
 
