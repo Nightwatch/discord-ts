@@ -1,8 +1,10 @@
-import { Guild, GuildMember, GuildMemberResolvable } from 'discord.js'
+import { Guild, GuildMemberResolvable } from 'discord.js'
 import { Just, Maybe } from 'purify-ts/Maybe'
 import { UserService } from '../services'
 
 export type ArgumentType = 'user' | 'number' | 'string'
+
+export type ArgumentResolved = GuildMemberResolvable | number | string
 
 interface ArgumentResolverOptions {
   input: string

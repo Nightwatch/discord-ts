@@ -6,7 +6,7 @@ import { ArgumentType, Command, ClientOptions, Message, Event } from '..'
 import { Maybe, Nothing } from 'purify-ts/Maybe'
 import { Logger } from '../../util'
 import { DefaultCommandOptions, initDefaultCommandOptions } from '../default-command-options'
-import { ArgumentTypeResolver } from '../argument-type'
+import { ArgumentTypeResolver, ArgumentResolved } from '../argument-type'
 import { UserService } from '../../services'
 
 /**
@@ -447,11 +447,18 @@ export class Client extends DiscordJsClient {
       )
   }
 
+  /**
+   * Resolves a string into a specific argument type(s).
+   * 
+   * @param value The string to resolve.
+   * @param argumentType The argument type(s) to resolve to
+   * @param guild The guild the command was run in.
+   */
   private resolveArgumentType(
     value: string,
     argumentType: ArgumentType | ArgumentType[],
     guild: Guild
-  ) {
+  ): Maybe<ArgumentResolved> {
     if (Array.isArray(argumentType)) {
       for (const type of argumentType) {
         const resolved = ArgumentTypeResolver(type)({
@@ -459,6 +466,7 @@ export class Client extends DiscordJsClient {
           guild,
           userService: this.userService
         })
+
         if (resolved.isJust()) {
           return resolved
         }
