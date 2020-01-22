@@ -1,4 +1,4 @@
-# Bot-TS
+# discord-ts
 
 Superset of discord.js with a built-in command framework.
 
@@ -8,9 +8,9 @@ Prerequisites
 
 - Node.js >= v10
 
-You can install Bot-TS with your favorite package manager:
+You can install discord-ts with your favorite package manager:
 
-- `npm install --save bot-ts`
+- `npm install --save discord-ts`
 
 ## Usage
 
@@ -19,7 +19,7 @@ You can install Bot-TS with your favorite package manager:
 To create a bot, you need to create a `Client` instance.
 
 ```ts
-import { Client } from 'bot-ts'
+import { Client } from 'discord-ts'
 
 const client = new Client({
   commandPrefix: 'c',
@@ -47,7 +47,7 @@ This method will find all commands within a directory and register them.
 
 The directory may contain other files and non-commands. I will ignore those.
 
-Bot-TS includes some base commands that you may find helpful. Register them before you register any custom commands:
+discord-ts includes some base commands that you may find helpful. Register them before you register any custom commands:
 
 ```ts
 client.registerDefaultCommands().registerCommandsIn(path.join(__dirname, 'commands'))
@@ -67,7 +67,7 @@ Any default command you set to `false` will not be registered.
 
 ### Creating a command
 
-Bot-TS comes with its own command framework, allowing you to create powerful commands very easily.
+discord-ts comes with its own command framework, allowing you to create powerful commands very easily.
 
 #### Hello world command
 
@@ -80,7 +80,7 @@ Within that folder, create a new file, `hello-world.ts` (or `hello-world.js` if 
 Here is the completed command:
 
 ```ts
-import { Client, Message, Command } from 'bot-ts'
+import { Client, Message, Command } from 'discord-ts'
 
 export default class HelloWorldCommand extends Command {
   constructor(client) {
@@ -126,7 +126,7 @@ An argument requires three properties:
 Here is the updated command:
 
 ```ts
-import { Client, Message, Command } from 'bot-ts'
+import { Client, Message, Command } from 'discord-ts'
 
 export default class HelloWorldCommand extends Command {
   constructor(client) {
@@ -155,14 +155,14 @@ Please note that the object property within the `run` method must be named exact
 
 There will be some commands you don't want every user to be able to use (e.g. kick, ban, mute, etc.).
 
-Bot-TS allows you to deny users access to these commands with the `hasPermission` method where you can require some conditions to be met in order for the user to be able to use the command (e.g. must require a certain permission, a certain role, etc.)
+discord-ts allows you to deny users access to these commands with the `hasPermission` method where you can require some conditions to be met in order for the user to be able to use the command (e.g. must require a certain permission, a certain role, etc.)
 
 Let's revise the HelloWorld command once again to restrict the command to only be usable by users with the "MANAGE_MESSAGES" permission.
 
 Here's the final command:
 
 ```ts
-import { Client, Message, Command } from 'bot-ts'
+import { Client, Message, Command } from 'discord-ts'
 
 export default class HelloWorldCommand extends Command {
   constructor(client) {
